@@ -12,5 +12,4 @@ namespace ttZ{
     std::map< std::string, double > computeVariables( Event& event, const std::string& unc );
 }
 
-
 #endif

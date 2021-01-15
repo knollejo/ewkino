@@ -2,7 +2,7 @@
 //
 //include c++ library classes
 
-//include ROOT classes 
+//include ROOT classes
 #include "TTree.h"
 
 //include general parts of framework
@@ -18,12 +18,11 @@
 
 #include "../Tools/interface/SampleCrossSections.h"
 
-//include ewkino specific code
+//include ttZ specific code
 #include "interface/ttZSelection.h"
 #include "interface/ttZVariables.h"
-//#include "interface/ttZSearchRegions.h"
 
-#include <functional> 
+#include <functional>
 
 //compare floating points
 bool floatEqual( const double lhs, const double rhs ){
@@ -31,7 +30,7 @@ bool floatEqual( const double lhs, const double rhs ){
 }
 
 
-//build histograms 
+//build histograms
 std::vector< HistInfo > makeDistributionInfo(){
 
     //make general plots
@@ -55,8 +54,6 @@ std::vector< HistInfo > makeDistributionInfo(){
         HistInfo( "nBJets", "number of b-jets (medium deep flavor)", 5, -0.5, 4.5 ),
         HistInfo( "nVertex", "number of vertices", 30, 0, 70 ),
 
-//        HistInfo( "ttZSR", "Signal Regions", 28, 0, 28 ),
-        HistInfo( "ttZSR", "Signal Regions", 14, 0, 14 ),
         HistInfo( "ttZFlav", "Lepton flavors", 4, 0, 4 ),
 
         HistInfo( "ptZ", "p_{T}^{Z} [GeV]", 16, 0, 400 ),
@@ -68,10 +65,9 @@ std::vector< HistInfo > makeDistributionInfo(){
 
 
 std::vector< double > buildFillingVector( Event& event, const std::string& uncertainty){
-    
+
     auto varMap = ttZ::computeVariables( event, uncertainty );
     std::vector< double > fillValues;
-    unsigned searchttZ = ttZ::SR_main( event, event.numberOfFOLeptons(), ttZ::numberOfVariedJets( event, uncertainty ), ttZ::numberOfVariedBJets( event, uncertainty ) );
     unsigned ttZFlav = ttZ::ttZFlavPlot( event );
     fillValues = {
         event.lepton( 0 ).pt(),
@@ -91,41 +87,19 @@ std::vector< double > buildFillingVector( Event& event, const std::string& uncer
         varMap.at("numberOfBJets"),
         static_cast< double >( event.numberOfVertices() ),
 
-        static_cast< double >( searchttZ ),
         static_cast< double >( ttZFlav ),
 
         varMap.at("ptZ"),
         varMap.at("cosThetaStar"),
     };
-    
+
     return fillValues;
 }
 
 
-//auto varMap = ewkino::computeVariables( event, uncertainty );
-//unsigned searchROld = ewkino::SR_EWK_3lOSSF_old( varMap.at("mtW"), varMap.at("met"), varMap.at("mll") );
-//unsigned searchRNew = ewkino::SR_EWK_3lOSSF_new( varMap.at("mll"), varMap.at("mtW"), varMap.at("mt3l"), varMap.at("met"), varMap.at("ht") );
-
-
-
-void analyze( const std::string& year, const std::string& controlRegion, const std::string& sampleDirectoryPath , const std::string& procName){
-
+void analyze( const std::string& year, const std::string& sampleDirectoryPath , const std::string& procName){
 
     analysisTools::checkYearString( year );
-
-    //selection that defines the control region
-    const std::map< std::string, std::function< bool (Event&, const std::string&) > > crSelectionFunctionMap{
-        { "ttZ", ttZ::passSelectionTTZ},
-        { "ttZclean", ttZ::passSelectionTTZclean},
-        { "WZ", ttZ::passSelectionWZCR},
-        { "DY", ttZ::passSelectionDYCR},
-        { "ttbar", ttZ::passSelectionttbarCR},
-        { "ZZ", ttZ::passSelectionZZCR},
-        { "TTZ", ttZ::passSelectionTTZ }
-    };
-
-    auto passSelection = crSelectionFunctionMap.at( controlRegion );
-
 
     //build TreeReader and loop over samples
     std::cout << "building treeReader" << std::endl;
@@ -138,15 +112,10 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
 
     //read FR maps
     std::cout << "building FR maps" << std::endl;
-//    TFile* frFileMuons = TFile::Open( ( "frMaps/muFR_QCD_MC_Marek_" + year + ".root" ).c_str() );
-//    std::shared_ptr< TH2 > frMapMuons = std::shared_ptr< TH2 >( dynamic_cast< TH2* >( frFileMuons->Get( "passed" ) ) );
     TFile* frFileMuons = TFile::Open( ( "frMaps/fakeRateMap_data_muon_" + year + "_mT.root" ).c_str() );
     std::shared_ptr< TH2 > frMapMuons = std::shared_ptr< TH2 >( dynamic_cast< TH2* >( frFileMuons->Get( ("fakeRate_muon_" + year ).c_str() ) ) );
     frMapMuons->SetDirectory( gROOT );
     frFileMuons->Close();
-
-//    TFile* frFileElectrons = TFile::Open( ( "frMaps/elFR_QCD_MC_Marek_" + year + ".root" ).c_str() );
-//    std::shared_ptr< TH2 > frMapElectrons = std::shared_ptr< TH2 >( dynamic_cast< TH2* >( frFileElectrons->Get( "passed" ) ) );
     TFile* frFileElectrons = TFile::Open( ( "frMaps/fakeRateMap_data_electron_" + year + "_mT.root" ).c_str() );
     std::shared_ptr< TH2 > frMapElectrons = std::shared_ptr< TH2 >( dynamic_cast< TH2* >( frFileElectrons->Get( ( "fakeRate_electron_" + year ).c_str() ) ) );
     frMapElectrons->SetDirectory( gROOT );
@@ -172,17 +141,12 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
         }
     }
 
-    //const std::vector< std::string > shapeUncNames = {  "JEC_" + year, "JER_" + year, "scale", "pileup", "prefire", "lepton_reco", "lepton_id" }; //, "pdf" }; //"scaleXsec", "pdfXsec" }
-    const std::vector< std::string > shapeUncNames = {  "JEC_" + year, "JER_" + year, "scale", "pileup", "bTag_heavy_" + year, "bTag_light_" + year, "prefire", "lepton_reco", "lepton_id", "pdf" }; //, "scaleXsec", "pdfXsec" }
+    const std::vector< std::string > shapeUncNames = {  "JEC_" + year, "JER_" + year, "scale", "pileup", "bTag_heavy_" + year, "bTag_light_" + year, "prefire", "lepton_reco", "lepton_id", "pdf" };
     std::map< std::string, int > shapesIntMap{{"JEC_" + year, 0}, { "JER_" + year, 1}, {"scale", 2}, {"pileup", 3}, {"bTag_heavy_" + year, 4}, {"bTag_light_" + year, 5}, {"prefire", 6}, {"lepton_reco", 7}, {"lepton_id", 8}, {"pdf" , 9}};
 
-    unsigned numberOfPdfVariations = 100;
     // histogram for each uncertianty, dist, process
     std::map< std::string, std::vector< std::vector< std::shared_ptr< TH1D > > > > histogramsUncDown;
     std::map< std::string, std::vector< std::vector< std::shared_ptr< TH1D > > > > histogramsUncUp;
-    // histogram for each uncertianty, dist
-//    std::map< std::string, std::vector< std::shared_ptr< TH1D > > > histogramsUncDecompDown;
-//    std::map< std::string, std::vector< std::shared_ptr< TH1D > > > histogramsUncDecompUp;
     std::vector<  std::vector< std::shared_ptr< TH1D > > > histogramsUncDecompDown( histInfoVector.size(), std::vector< std::shared_ptr< TH1D > >( shapeUncNames.size() ) );
     std::vector<  std::vector< std::shared_ptr< TH1D > > > histogramsUncDecompUp( histInfoVector.size(), std::vector< std::shared_ptr< TH1D > >( shapeUncNames.size() ) );
     // for each uncertainty
@@ -190,9 +154,6 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
         histogramsUncDown[ unc ] = std::vector< std::vector< std::shared_ptr< TH1D > > >( histInfoVector.size(), std::vector< std::shared_ptr< TH1D > >( sampleVec.size() + 1 )  );
         histogramsUncUp[ unc ] = std::vector< std::vector< std::shared_ptr< TH1D > > >( histInfoVector.size(), std::vector< std::shared_ptr< TH1D > >( sampleVec.size() + 1 )  );
 
-//        histogramsUncDecompDown[ unc ] = std::vector< std::shared_ptr< TH1D > >( histInfoVector.size() );
-//        histogramsUncDecompUp[ unc ]   = std::vector< std::shared_ptr< TH1D > >( histInfoVector.size() );
-        
         //create a set of all histograms
         for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
             // for each type of sample
@@ -211,6 +172,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
     }
 
     // create histograms for each pdf variation
+    unsigned numberOfPdfVariations = 100;
     std::map< unsigned, std::vector< std::vector< std::shared_ptr< TH1D > > > > histogramsPDFVars;
     // hard coded number of pdf variations!!
     for( unsigned pdf_i = 0; pdf_i < numberOfPdfVariations; ++pdf_i){
@@ -228,12 +190,10 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
         }
     }
 
-    std::cout << "event loop" << std::endl;
-
     bool FRfromMC = false;
-
     std::cout << "Fake rate from data? " << (FRfromMC ? "no":"yes") << std::endl;
 
+    std::cout << "event loop" << std::endl;
     for( unsigned sampleIndex = 0; sampleIndex < treeReader.numberOfSamples(); ++sampleIndex ){
         treeReader.initSample();
 
@@ -244,7 +204,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
         for( long unsigned entry = 0; entry < treeReader.numberOfEntries(); ++entry ){
             if ( sampleVec[ sampleIndex ].processName() != procName && procName != "all" ) break;
             Event event = treeReader.buildEvent( entry );
-            
+
             //check if sample has pdf and scale information stored, try-catch blocks for every event are too slow
             if( entry == 0 && treeReader.isMC() ){
                 try{
@@ -254,10 +214,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
                 }
             }
 
-//            if(entry > treeReader.numberOfEntries()/20) break;            
-//            if(entry > 1000) break;
             //apply baseline selection
-
             if( !ttZ::passBaselineSelection( event, true, true ) ) continue;
 
             //apply lepton pT cuts
@@ -266,9 +223,6 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
             //require triggers
             if( !ttZ::passTriggerSelection( event ) ) continue;
             if( !( event.passMetFilters() ) ) continue;
-
-            //remove photon overlap
-//            if( !ttZ::passPhotonOverlapRemoval( event ) ) continue;
 
             //require the right number of tight and FO(loose) leptons in 3(4) lepton events
             if( !ttZ::passSelectionLNumber( event ) ) continue;
@@ -294,17 +248,8 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
                 if( event.isMC() ) weight *= -1.;
             }
 
-//            // in 4L nonptrompt is calcualted from MC, should add WZ to nonprompt too.
-//            if( event.isMC() && event.numberOfTightLeptons() == 4 && !ttZ::leptonsArePrompt( event ) ){
-//                fillIndex = treeReader.numberOfSamples();
-//            }
-            
-//            // for nonprompt from MC, reject events with 
-//            if( event.numberOfTightLeptons() < 3 && FRfromMC ) continue;
-
             //fill nominal histograms
-//            if( passSelection( event, "nominal" ) || ttZ::passSelectionWZCR( event, "nominal" ) ){
-            if( passSelection( event, "nominal" ) ){
+            if( ttZ::passSelectionTTZ( event, "nominal" ) ){
                 auto fillValues = buildFillingVector( event, "nominal" );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histograms[ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
@@ -315,7 +260,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
                     for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                         for( const auto& key : shapeUncNames ){
                             histogram::fillValue( histogramsUncDown[ key ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
-                            histogram::fillValue( histogramsUncUp[ key ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );       
+                            histogram::fillValue( histogramsUncUp[ key ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
                         }
                     }
                 }
@@ -324,9 +269,9 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
 
             //no uncertainties for data
             if( event.isData() ) continue;
-            
+
             //fill JEC down histograms
-            if( passSelection( event, "JECDown" ) ){
+            if( ttZ::passSelectionTTZ( event, "JECDown" ) ){
                 auto fillValues = buildFillingVector( event, "JECDown" );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histogramsUncDown[ "JEC_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
@@ -334,7 +279,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
             }
 
             //fill JEC up histograms
-            if( passSelection( event, "JECUp" ) ){
+            if( ttZ::passSelectionTTZ( event, "JECUp" ) ){
                 auto fillValues = buildFillingVector( event, "JECUp" );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histogramsUncUp[ "JEC_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
@@ -342,7 +287,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
             }
 
             //fill JER down histograms
-            if( passSelection( event, "JERDown" ) ){
+            if( ttZ::passSelectionTTZ( event, "JERDown" ) ){
                 auto fillValues = buildFillingVector( event, "JERDown" );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histogramsUncDown[ "JER_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
@@ -350,153 +295,143 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
             }
 
             //fill JER up histograms
-            if( passSelection( event, "JERUp" ) ){
+            if( ttZ::passSelectionTTZ( event, "JERUp" ) ){
                 auto fillValues = buildFillingVector( event, "JERUp" );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histogramsUncUp[ "JER_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
                 }
             }
 
-//    //            //fill unclustered down histograms
-//    //            if( passSelection( event, "UnclDown" ) ){
-//    //                auto fillValues = buildFillingVector( event, "UnclDown", massSplitting, nnReader );
-//    //                for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-//    //                    histogram::fillValue( histogramsUncDown[ "uncl" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
-//    //                }
-//    //            }
-//    //
-//    //            //fill unclustered up histograms 
-//    //            if( passSelection( event, "UnclUp" ) ){
-//    //                auto fillValues = buildFillingVector( event, "UnclUp", massSplitting, nnReader );
-//    //                for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-//    //                    histogram::fillValue( histogramsUncUp[ "uncl" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
-//    //                }
-//    //            }
-            
+            // //fill unclustered down histograms
+            // if( ttZ::passSelectionTTZ( event, "UnclDown" ) ){
+            //     auto fillValues = buildFillingVector( event, "UnclDown", massSplitting, nnReader );
+            //     for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+            //         histogram::fillValue( histogramsUncDown[ "uncl" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
+            //     }
+            // }
+            //
+            // //fill unclustered up histograms
+            // if( ttZ::passSelectionTTZ( event, "UnclUp" ) ){
+            //     auto fillValues = buildFillingVector( event, "UnclUp", massSplitting, nnReader );
+            //     for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+            //         histogram::fillValue( histogramsUncUp[ "uncl" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
+            //     }
+            // }
+
             //apply nominal selection and compute nominal variables
-            if( !passSelection( event, "nominal" ) ) continue;
+            if( !ttZ::passSelectionTTZ( event, "nominal" ) ) continue;
             auto fillValues = buildFillingVector( event, "nominal" );
 
-          //fill scale down histograms
-          double weightScaleDown;
-          if( sampleHasPdfAndScale ){
-              weightScaleDown =  event.generatorInfo().relativeWeight_MuR_0p5_MuF_0p5();
-          } else {
-              weightScaleDown = 1.;
-          }
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncDown[ "scale" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightScaleDown );
-          }
-      
-          //fill scale up histograms
-          double weightScaleUp;
-          if( sampleHasPdfAndScale ){
-              weightScaleUp = event.generatorInfo().relativeWeight_MuR_2_MuF_2();
-          } else {
-              weightScaleUp = 1.;
-          }
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncUp[ "scale" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightScaleUp );
-          }
+            //fill scale down histograms
+            double weightScaleDown;
+            if( sampleHasPdfAndScale ){
+                weightScaleDown =  event.generatorInfo().relativeWeight_MuR_0p5_MuF_0p5();
+            } else {
+                weightScaleDown = 1.;
+            }
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncDown[ "scale" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightScaleDown );
+            }
 
-          //fill pdf histograms
-          for( unsigned pdf_i = 0; pdf_i < numberOfPdfVariations; ++pdf_i){
-              double weightPdf = sampleHasPdfAndScale ? event.generatorInfo().relativeWeightPdfVar(pdf_i) : 1.;
-              for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-                  //std::cout << " pdf_i, dist, fillIndex " << pdf_i << ", " << dist << ", " << fillIndex << std::endl;
-                  histogram::fillValue( histogramsPDFVars[ pdf_i ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPdf );
-              }
-          }
+            //fill scale up histograms
+            double weightScaleUp;
+            if( sampleHasPdfAndScale ){
+                weightScaleUp = event.generatorInfo().relativeWeight_MuR_2_MuF_2();
+            } else {
+                weightScaleUp = 1.;
+            }
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncUp[ "scale" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightScaleUp );
+            }
 
-          //fill pileup down histograms
-          double weightPileupDown = reweighter[ "pileup" ]->weightDown( event ) / reweighter[ "pileup" ]->weight( event );
-          if ( std::isnan(weightPileupDown) ) weightPileupDown = 0.;
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncDown[ "pileup" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPileupDown );
-          }
+            //fill pdf histograms
+            for( unsigned pdf_i = 0; pdf_i < numberOfPdfVariations; ++pdf_i){
+                double weightPdf = sampleHasPdfAndScale ? event.generatorInfo().relativeWeightPdfVar(pdf_i) : 1.;
+                for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                    histogram::fillValue( histogramsPDFVars[ pdf_i ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPdf );
+                }
+            }
 
-          //fill pileup up histograms
-          double weightPileupUp = reweighter[ "pileup" ]->weightUp( event ) / reweighter[ "pileup" ]->weight( event );
-          if ( std::isnan(weightPileupUp) ) weightPileupUp = 0.;
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncUp[ "pileup" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPileupUp );
-          }
+            //fill pileup down histograms
+            double weightPileupDown = reweighter[ "pileup" ]->weightDown( event ) / reweighter[ "pileup" ]->weight( event );
+            if ( std::isnan(weightPileupDown) ) weightPileupDown = 0.;
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncDown[ "pileup" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPileupDown );
+            }
 
-          //fill b-tag down histograms
-          //WARNING : THESE SHOULD ACTUALLY BE SPLIT BETWEEN HEAVY AND LIGHT FLAVORS
-          double weightBTagHeavyDown = reweighter[ "bTag_heavy" ]->weightDown( event ) / reweighter[ "bTag_heavy" ]->weight( event );
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncDown[ "bTag_heavy_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightBTagHeavyDown );
-          }
+            //fill pileup up histograms
+            double weightPileupUp = reweighter[ "pileup" ]->weightUp( event ) / reweighter[ "pileup" ]->weight( event );
+            if ( std::isnan(weightPileupUp) ) weightPileupUp = 0.;
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncUp[ "pileup" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPileupUp );
+            }
 
-          //fill b-tag up histograms
-          //WARNING : THESE SHOULD ACTUALLY BE SPLIT BETWEEN HEAVY AND LIGHT FLAVORS
-          double weightBTagHeavyUp = reweighter[ "bTag_heavy" ]->weightUp( event ) / reweighter[ "bTag_heavy" ]->weight( event );
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncUp[ "bTag_heavy_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightBTagHeavyUp );
-          }
+            //fill b-tag down histograms
+            //WARNING : THESE SHOULD ACTUALLY BE SPLIT BETWEEN HEAVY AND LIGHT FLAVORS
+            double weightBTagHeavyDown = reweighter[ "bTag_heavy" ]->weightDown( event ) / reweighter[ "bTag_heavy" ]->weight( event );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncDown[ "bTag_heavy_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightBTagHeavyDown );
+            }
 
-          //WARNING : THESE SHOULD ACTUALLY BE SPLIT BETWEEN HEAVY AND LIGHT FLAVORS
-          double weightBTagLightDown = reweighter[ "bTag_light" ]->weightDown( event ) / reweighter[ "bTag_light" ]->weight( event );
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncDown[ "bTag_light_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightBTagLightDown );
-          }
+            //fill b-tag up histograms
+            //WARNING : THESE SHOULD ACTUALLY BE SPLIT BETWEEN HEAVY AND LIGHT FLAVORS
+            double weightBTagHeavyUp = reweighter[ "bTag_heavy" ]->weightUp( event ) / reweighter[ "bTag_heavy" ]->weight( event );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncUp[ "bTag_heavy_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightBTagHeavyUp );
+            }
 
-          //fill b-tag up histograms
-          //WARNING : THESE SHOULD ACTUALLY BE SPLIT BETWEEN HEAVY AND LIGHT FLAVORS
-          double weightBTagLightUp = reweighter[ "bTag_light" ]->weightUp( event ) / reweighter[ "bTag_light" ]->weight( event );
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncUp[ "bTag_light_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightBTagLightUp );
-          }
+            //WARNING : THESE SHOULD ACTUALLY BE SPLIT BETWEEN HEAVY AND LIGHT FLAVORS
+            double weightBTagLightDown = reweighter[ "bTag_light" ]->weightDown( event ) / reweighter[ "bTag_light" ]->weight( event );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncDown[ "bTag_light_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightBTagLightDown );
+            }
 
-        //fill prefiring down histograms
-          double weightPrefireDown = reweighter[ "prefire" ]->weightDown( event ) / reweighter[ "prefire" ]->weight( event );
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncDown[ "prefire" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPrefireDown );
-          }
-      
-          //fill prefiring up histograms
-          double weightPrefireUp = reweighter[ "prefire" ]->weightUp( event ) / reweighter[ "prefire" ]->weight( event );
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncUp[ "prefire" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPrefireUp );
-          }
+            //fill b-tag up histograms
+            //WARNING : THESE SHOULD ACTUALLY BE SPLIT BETWEEN HEAVY AND LIGHT FLAVORS
+            double weightBTagLightUp = reweighter[ "bTag_light" ]->weightUp( event ) / reweighter[ "bTag_light" ]->weight( event );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncUp[ "bTag_light_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightBTagLightUp );
+            }
 
-          double recoWeightDown;
-          double recoWeightUp;
-//          if( !event.is2018() ){
-              recoWeightDown = reweighter[ "electronReco_pTBelow20" ]->weightDown( event ) * reweighter[ "electronReco_pTAbove20" ]->weightDown( event ) / ( reweighter[ "electronReco_pTBelow20" ]->weight( event ) * reweighter[ "electronReco_pTAbove20" ]->weight( event ) );
-              recoWeightUp = reweighter[ "electronReco_pTBelow20" ]->weightUp( event ) * reweighter[ "electronReco_pTAbove20" ]->weightUp( event ) / ( reweighter[ "electronReco_pTBelow20" ]->weight( event ) * reweighter[ "electronReco_pTAbove20" ]->weight( event ) );
-//          } else {
-//              recoWeightDown = reweighter[ "electronReco" ]->weightDown( event ) / ( reweighter[ "electronReco" ]->weight( event ) );
-//              recoWeightUp = reweighter[ "electronReco" ]->weightUp( event ) / ( reweighter[ "electronReco" ]->weight( event ) );
-//          }
+            //fill prefiring down histograms
+            double weightPrefireDown = reweighter[ "prefire" ]->weightDown( event ) / reweighter[ "prefire" ]->weight( event );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncDown[ "prefire" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPrefireDown );
+            }
 
-          //fill lepton reco down histograms 
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncDown[ "lepton_reco" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * recoWeightDown );
-          }
+            //fill prefiring up histograms
+            double weightPrefireUp = reweighter[ "prefire" ]->weightUp( event ) / reweighter[ "prefire" ]->weight( event );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncUp[ "prefire" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * weightPrefireUp );
+            }
 
-          //fill lepton reco up histograms 
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncUp[ "lepton_reco" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * recoWeightUp );
-          }
+            //fill lepton reco down histograms
+            double recoWeightDown = reweighter[ "electronReco_pTBelow20" ]->weightDown( event ) * reweighter[ "electronReco_pTAbove20" ]->weightDown( event ) / ( reweighter[ "electronReco_pTBelow20" ]->weight( event ) * reweighter[ "electronReco_pTAbove20" ]->weight( event ) );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncDown[ "lepton_reco" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * recoWeightDown );
+            }
 
-          double leptonIDWeightDown = reweighter[ "muonID" ]->weightDown( event ) * reweighter[ "electronID" ]->weightDown( event ) / ( reweighter[ "muonID" ]->weight( event ) * reweighter[ "electronID" ]->weight( event ) );
-          double leptonIDWeightUp = reweighter[ "muonID" ]->weightUp( event ) * reweighter[ "electronID" ]->weightUp( event ) / ( reweighter[ "muonID" ]->weight( event ) * reweighter[ "electronID" ]->weight( event ) );
+            //fill lepton reco up histograms
+            double recoWeightUp = reweighter[ "electronReco_pTBelow20" ]->weightUp( event ) * reweighter[ "electronReco_pTAbove20" ]->weightUp( event ) / ( reweighter[ "electronReco_pTBelow20" ]->weight( event ) * reweighter[ "electronReco_pTAbove20" ]->weight( event ) );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncUp[ "lepton_reco" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * recoWeightUp );
+            }
 
-          //fill lepton id down histograms
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncDown[ "lepton_id" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * leptonIDWeightDown );
-          }
+            //fill lepton id down histograms
+            double leptonIDWeightDown = reweighter[ "muonID" ]->weightDown( event ) * reweighter[ "electronID" ]->weightDown( event ) / ( reweighter[ "muonID" ]->weight( event ) * reweighter[ "electronID" ]->weight( event ) );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncDown[ "lepton_id" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * leptonIDWeightDown );
+            }
 
-          //fill lepton id up histograms
-          for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-              histogram::fillValue( histogramsUncUp[ "lepton_id" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * leptonIDWeightUp );
-          }
+            //fill lepton id up histograms
+            double leptonIDWeightUp = reweighter[ "muonID" ]->weightUp( event ) * reweighter[ "electronID" ]->weightUp( event ) / ( reweighter[ "muonID" ]->weight( event ) * reweighter[ "electronID" ]->weight( event ) );
+            for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
+                histogram::fillValue( histogramsUncUp[ "lepton_id" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight * leptonIDWeightUp );
+            }
 
         }
     }
-      
+
     //make SampleCrossSectionRatio objects to remove cross section effects from theory uncertainties
     std::map< std::string, SampleCrossSections > sampleCrossSectionsMap;
     for( size_t p = 1; p < sampleVec.size(); ++p ){
@@ -516,7 +451,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
                 double originalBin = histograms[ dist ][ p ]->GetBinContent( bin );
                 for( size_t pdf = 0; pdf < numberOfPdfVariations; ++pdf ){
                     double variedBin = histogramsPDFVars[ pdf ][ dist ][ p ]->GetBinContent( bin );
-                    
+
                     //divide out cross section effects
                     if( p < sampleVec.size() ){
                         if( crossSectionPtr->numberOfLheVariations() >= 110 ){
@@ -535,7 +470,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
 
     //set negative contributions to zero
     for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
-        
+
         //backgrounds, data and merged signal
         for( size_t p = 0; p < sampleVec.size() + 1; ++p ){
             analysisTools::setNegativeBinsToZero( histograms[ dist ][ p ] );
@@ -546,7 +481,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
             }
         }
     }
-    
+
     //divide out cross section ratios from scale uncertainty ( can not be done for nonprompt )
     for( size_t p = 1; p < sampleVec.size(); ++p ){
         for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
@@ -567,35 +502,28 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
 
 
     //merge process histograms
-//    std::vector< std::string > proc = {"Data", "ttZ", "WZ", "Xgamma", "ZZ", "Nonprompt",  };
     std::vector< std::string > proc = {"Data", "ttZ", "ttX", "WZ", "Xgamma", "ZZ", "rare", "Nonprompt" };
     std::vector< std::vector< TH1D* > > mergedHistograms( histInfoVector.size(), std::vector< TH1D* >( proc.size() ) );
-    //size_t numberOfBackgrounds = 0;
-    //for( const auto& s : sampleVec ){
-    //    if( !s.isNewPhysicsSignal() ) ++numberOfBackgrounds; 
-    //}
 
     // loop over all distributions
     for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
         // loop over all samples
         for( size_t m = 0, sample = 0; m < proc.size() - 1; ++m ){
             mergedHistograms[ dist ][ m ] = dynamic_cast< TH1D* >( histograms[ dist ][ sample ]->Clone() );
-            //while( sample < numberOfBackgrounds - 1 && sampleVec[ sample ].processName() == sampleVec[ sample + 1 ].processName() ){
             while( sample < sampleVec.size() - 1 && sampleVec[ sample ].processName() == sampleVec[ sample + 1 ].processName() ){
                 mergedHistograms[ dist ][ m ]->Add( histograms[ dist ][ sample + 1].get() );
                 ++sample;
             }
             ++sample;
         }
-        
+
         //add nonprompt histogram
         mergedHistograms[ dist ][ proc.size() -1 ] = dynamic_cast< TH1D* >( histograms[ dist ].back()->Clone() );
     }
 
-    //merge process histograms for uncertainties 
+    //merge process histograms for uncertainties
     std::map< std::string, std::vector< std::vector< TH1D* > > > mergedHistogramsUncDown;
     std::map< std::string, std::vector< std::vector< TH1D* > > > mergedHistogramsUncUp;
-
     for( const auto& unc : shapeUncNames ){
         mergedHistogramsUncDown[ unc ] = std::vector< std::vector< TH1D* > >( histInfoVector.size(), std::vector< TH1D* >( proc.size() ) );
         mergedHistogramsUncUp[ unc ] = std::vector< std::vector< TH1D* > >( histInfoVector.size(), std::vector< TH1D* >( proc.size() ) );
@@ -619,32 +547,7 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
     //make total uncertainty histograms for plotting
     const std::vector< std::string > uncorrelatedBetweenProcesses = {"scale", "pdf", "scaleXsec", "pdfXsec"};
     double lumiUncertainty = 1.025;
-    std::vector<double> flatUnc = { lumiUncertainty, 1.02 }; //lumi, trigger
-//    std::map< std::string, double > backgroundSpecificUnc;
-//    if( controlRegion == "TTZ" || controlRegion == "NP" ){
-//        backgroundSpecificUnc = {
-//            {"Nonprompt", 1.3},
-//            {"WZ", 1.1},
-//            {"X + #gamma", 1.1},
-//            {"ZZ/H", 1.1},
-//            {"t#bar{t}/t + X", 1.15 },
-//            {"Multiboson", 1.5}
-//        };
-//    } else {
-//        backgroundSpecificUnc = {
-//            {"Nonprompt", 1.3},
-//            {"WZ", 1.1},
-//            {"X + #gamma", 1.1},
-//            {"ZZ/H", 1.1},
-//            {"t#bar{t}/t + X", 1.5 },
-//            {"Multiboson", 1.5}
-//        };
-//    }
-
-    //const std::set< std::string > acceptedShapes = { "JEC_" + year, "JER_" + year, "uncl", "scale", "pileup", "bTag_" + year, "prefire", "lepton_reco", "lepton_id"}
-    //const std::set< std::string > acceptedShapes = { "JEC_" + year, "scale", "bTag_" + year, "prefire", "lepton_reco", "lepton_id"};
-    //const std::set< std::string > acceptedShapes = { "JEC_" + year };
-
+    std::vector<double> flatUnc = { lumiUncertainty, 1.02 };
     std::vector< TH1D* > totalSystUncertainties( histInfoVector.size() );
     for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
         totalSystUncertainties[ dist ] = dynamic_cast< TH1D* >( mergedHistograms[ dist ][ 0 ]->Clone() );
@@ -653,7 +556,6 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
 
             //add shape uncertainties
             for( auto& shape : shapeUncNames ){
-                //if( acceptedShapes.find( shape ) == acceptedShapes.cend() ) continue;
                 bool nuisanceIsUncorrelated = ( std::find( uncorrelatedBetweenProcesses.cbegin(), uncorrelatedBetweenProcesses.cend(), shape ) != uncorrelatedBetweenProcesses.cend() );
 
                 //correlated case : linearly add up and down variations
@@ -669,33 +571,33 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
                     double upVariedContent = mergedHistogramsUncUp[ shape ][ dist ][ p ]->GetBinContent( bin );
                     double down = fabs( downVariedContent - nominalContent );
                     double up = fabs( upVariedContent - nominalContent );
-                    
-                    //uncorrelated case : 
+
+                    //uncorrelated case :
                     if( nuisanceIsUncorrelated ){
                         double variation = std::max( down, up );
                         var += variation*variation;
-                    
-                    //correlated case :     
+
+                    //correlated case :
                     } else {
                         varDown += down;
                         varUp += up;
                     }
 
                 }
-                //correlated case : 
+                //correlated case :
                 if( !nuisanceIsUncorrelated ){
                     var = std::max( varDown, varUp );
                     var = var*var;
                 }
-                
-                //add (already quadratic) uncertainties 
+
+                //add (already quadratic) uncertainties
                 binUnc += var;
 
-                //uncorrelated case : 
+                //uncorrelated case :
                 if( nuisanceIsUncorrelated ){
                     histogramsUncDecompDown[ dist ][ shapesIntMap.at(shape) ]->SetBinContent( bin, sqrt( var ) * -1. );
                     histogramsUncDecompUp[   dist ][ shapesIntMap.at(shape) ]->SetBinContent(   bin, sqrt( var ) );
-                    //correlated case :     
+                    //correlated case :
                 } else {
                     histogramsUncDecompDown[ dist ][ shapesIntMap.at(shape) ]->SetBinContent( bin, varDown * -1. );
                     histogramsUncDecompUp[   dist ][ shapesIntMap.at(shape) ]->SetBinContent(   bin, varUp );
@@ -716,21 +618,11 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
                 binUnc += var*var;
             }
 
-//            //add background specific uncertainties (uncorrelated between processes)
-//            for(auto& uncPair : backgroundSpecificUnc){
-//                for( size_t p = 1; p < proc.size(); ++p ){
-//                    if(proc[p] == uncPair.first){
-//                        double var = mergedHistograms[ dist ][ p ]->GetBinContent( bin )*( uncPair.second - 1. );
-//                        binUnc += var*var;
-//                    }
-//                }
-//            }
-
             //square root of quadratic sum is total uncertainty
             totalSystUncertainties[ dist ]->SetBinContent( bin, sqrt( binUnc ) );
         }
     }
-    
+
     //make plots
     for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
         std::string header;
@@ -744,23 +636,19 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
         std::string directoryName;
         std::string plotNameAddition;
 
-            directoryName = stringTools::formatDirectoryName( "plots/" + year + "/" + procName + "/" + controlRegion );
-            plotNameAddition = "_" + procName + "_" + controlRegion + "_" + year;
-//            directoryName = stringTools::formatDirectoryName( "plots/ttZ/" + year + "/" );
-//            plotNameAddition = "_" + year;
+        directoryName = stringTools::formatDirectoryName( "plots/" + year + "/" + procName );
+        plotNameAddition = "_" + procName + "_" + year;
 
         systemTools::makeDirectory( directoryName );
         plotDataVSMC( mergedHistograms[dist][0], &mergedHistograms[dist][1], &proc[0], proc.size() - 1, directoryName + histInfoVector[ dist ].name() + plotNameAddition + ".pdf" , "ttZ", false, false, header, totalSystUncertainties[ dist ], nullptr );
         plotDataVSMC( mergedHistograms[dist][0], &mergedHistograms[dist][1], &proc[0], proc.size() - 1, directoryName + histInfoVector[ dist ].name() + plotNameAddition + "_log.pdf" , "ttZ", true, false, header, totalSystUncertainties[ dist ], nullptr );
 
         plotUncAll( &mergedHistograms[dist][1], proc.size() - 1, histogramsUncDecompUp[dist], histogramsUncDecompDown[dist], &shapeUncNames[0], shapeUncNames.size(), directoryName + histInfoVector[ dist ].name() + plotNameAddition + "_unc.pdf", 1.5 );
-//        plotUncAll( &mergedHistograms[dist][1], proc.size() - 1, histogramsUncDecompUp[dist], histogramsUncDecompDown[dist], &shapeUncNames[0], shapeUncNames.size(), directoryName + histInfoVector[ dist ].name() + plotNameAddition + "_uncZoom.pdf", 0.5 );
     }
 
     // prepare root file for datacards / combine
     std::string shape_name = "shapeFile_";
-    shape_name += controlRegion + "_" + year + ".root";
-    //shape_name += ".root";
+    shape_name += year + ".root";
     TFile *file = TFile::Open( shape_name.c_str(), "RECREATE");
     std::vector< std::string > proc_names = {"data_obs", "ttZ", "ttX", "WZ", "Xgamma", "ZZ", "rare", "Nonprompt",  };
     TH1D *hist, *histUp, *histDown;
@@ -791,47 +679,37 @@ void analyze( const std::string& year, const std::string& controlRegion, const s
 
 int main( int argc, char* argv[] ){
     setTDRStyle();
-//    const std::string sampleDirectoryPath = "/pnfs/iihe/cms/store/user/wverbeke/ntuples_ewkino/";
-//    const std::string sampleDirectoryPath = "/pnfs/iihe/cms/store/user/mniedzie/old_ntuples/ntuples_ttV_2017/";
     const std::string sampleDirectoryPath = "/user/mniedzie/Work/ntuples_ttz_new/";
     std::vector< std::string > argvStr( &argv[0], &argv[0] + argc );
-    
-    //run specific model and mass splitting and year
-    // std::string model = argvStr[1];
-    // std::string deltaM = argvStr[2];
 
-    // create lists of allowed argument values. std::set would allow for faster search, 
+    // create lists of allowed argument values. std::set would allow for faster search,
     // but it's irrelevant here and vectors will be more convenient to handle.
     // std::set< std::string > years; years.insert("2016"); years.insert("2017"); years.insert("2018");
     std::vector< std::string > years{"2016", "2017", "2018"};
-    std::vector< std::string > cRegions{"ttZ", "ttZclean", "WZ", "DY", "ttbar", "ZZ", "TTZ"};
     std::vector< std::string > processes{"data", "ttZ", "ttX", "WZ", "Xgam", "ZZ", "rare", "all"};
 
     // if not enough arguments, complain. Last argument is optional
-    if(argc < 3){
+    if(argc < 2){
         std::cerr << "please specify input arguments, usage:" << std::endl;
-        std::cerr << "./ttZAnalysis year region (process)" << std::endl;
+        std::cerr << "./ttZAnalysis year (process)" << std::endl;
         return 1;
-    }    
+    }
     std::string year = argvStr[1];
-    std::string controlRegion = argvStr[2];
     std::string procName;
-    if ( argc == 4 ) procName = argvStr[3];
+    if ( argc == 3 ) procName = argvStr[2];
     else procName = "all";
 
-    if ( std::find(std::begin(years),     std::end(years),     year)          == std::end(years) || 
-         std::find(std::begin(cRegions),  std::end(cRegions),  controlRegion) == std::end(cRegions) || 
-         std::find(std::begin(processes), std::end(processes), procName)      == std::end(processes) 
+    if ( std::find(std::begin(years),     std::end(years),     year)          == std::end(years) ||
+         std::find(std::begin(processes), std::end(processes), procName)      == std::end(processes)
     ){
         std::cerr << "At least one of arguments not recognized" << std::endl;
         std::cerr << "allowed arguments:" << std::endl;
         std::cerr << "year:                          2016, 2017, 2018"                      << std::endl;
-        std::cerr << "control region:                ttZ, ttZclean, WZ, DY, ttbar, ZZ, TTZ" << std::endl;
         std::cerr << "process to analyze (optional): data, ttZ, ttX, WZ, Xgam, ZZ, rare"    << std::endl;
         return 1;
     }
-    
-    analyze( year, controlRegion, sampleDirectoryPath, procName );
+
+    analyze( year, sampleDirectoryPath, procName );
 
     return 0;
 }

@@ -5,8 +5,8 @@ SOURCES= ttZAnalysis.cc ../codeLibrary.o src/ttZSelection.cc src/ttZVariables.cc
 OBJECTS=$(SOURCES:.cc=.o)
 EXECUTABLE=ttZAnalysis
 
-all: 
+all:
 	$(CC) $(CFLAGS) $(SOURCES) $(LDFLAGS) -o $(EXECUTABLE)
-	
+
 clean:
 	rm -rf *o $(EXECUTABLE)
