@@ -3,6 +3,7 @@
 //include c++ library classes
 
 //include ROOT classes
+#include "TMath.h"
 #include "TTree.h"
 
 //include general parts of framework
@@ -37,27 +38,45 @@ std::vector< HistInfo > makeDistributionInfo(){
     std::vector< HistInfo > histInfoVec;
     histInfoVec = {
 
-        HistInfo( "leptonPtLeading", "p_{T}^{leading lepton} (GeV)", 13, 40, 300 ),
-        HistInfo( "leptonPtSubLeading", "p_{T}^{subleading lepton} (GeV)", 14, 15, 155 ),
-        HistInfo( "leptonPtTrailing", "P_{T}^{trailing lepton} (GeV)", 14, 15, 155 ),
+        HistInfo("category", "lepton flavour", 4, -0.5, 3.5),
+        HistInfo("nJets", "jet multiplicity", 5, 2.5, 7.5),
+        HistInfo("nBjets", "b-jet multiplicity", 3, 0.5, 3.5),
 
-        HistInfo( "leptonEtaLeading", "|#eta|^{leading lepton}", 10, 0, 2.5 ),
-        HistInfo( "leptonEtaSubLeading", "|#eta|^{subleading lepton}", 10, 0, 2.5 ),
-        HistInfo( "leptonEtaTrailing", "|#eta|^{trailing lepton}", 10, 0, 2.5 ),
+        HistInfo("dilepPt", "dilepton p_{T} [GeV]", 10, 0.0, 500.0),
+        HistInfo("dilepEta", "dilepton #eta", 12, -3.0, 3.0),
+        HistInfo("dilepPhi", "dilepton #phi", 10, -TMath::Pi(), TMath::Pi()),
+        HistInfo("dilepMass", "dilepton mass [GeV]", 10, 81.0, 101.0),
 
-        HistInfo( "met", "E_{T}^{miss} (GeV)", 10, 0, 200 ),
-        HistInfo( "nTI", "nTI (GeV)", 100, 0, 100 ),
-        HistInfo( "mll", "M_{ll} (GeV)", 10, 75, 105 ),
-        HistInfo( "ht", "H_{T} (GeV)", 10, 0, 800 ),
+        HistInfo("missingEt", "missing energy [GeV]", 11, 0.0, 220.0),
+        HistInfo("missingPhi", "missing momentum #phi", 10, -TMath::Pi(), TMath::Pi()),
 
-        HistInfo( "nJets", "number of jets", 7, 1, 8 ),
-        HistInfo( "nBJets", "number of b-jets (medium deep flavor)", 5, -0.5, 4.5 ),
-        HistInfo( "nVertex", "number of vertices", 30, 0, 70 ),
+        HistInfo("leadLepPt", "1st lepton p_{T} [GeV]", 10, 40.0, 330.0),
+        HistInfo("leadLepEta", "1st lepton #eta", 10, -2.5, 2.5),
+        HistInfo("leadLepPhi", "1st lepton #phi", 10, -TMath::Pi(), TMath::Pi()),
 
-        HistInfo( "ttZFlav", "Lepton flavors", 4, 0, 4 ),
+        HistInfo("sublLepPt", "2nd lepton p_{T} [GeV]", 10, 20.0, 165.0),
+        HistInfo("sublLepEta", "2nd lepton #eta", 10, -2.5, 2.5),
+        HistInfo("sublLepPhi", "2nd lepton #phi", 10, -TMath::Pi(), TMath::Pi()),
 
-        HistInfo( "ptZ", "p_{T}^{Z} [GeV]", 16, 0, 400 ),
-        HistInfo( "cosThetaStar", "cos(#theta^{*})", 5, -1, 1 ),
+        HistInfo("trailLepPt", "3rd lepton p_{T} [GeV]", 10, 10.0, 110.0),
+        HistInfo("trailLepEta", "3rd lepton #eta", 10, -2.5, 2.5),
+        HistInfo("trailLepPhi", "3rd lepton #phi", 10, -TMath::Pi(), TMath::Pi()),
+
+        HistInfo("firstJetPt", "1st jet p_{T} [GeV]", 10, 30.0, 330.0),
+        HistInfo("firstJetEta", "1st jet #eta", 10, -2.5, 2.5),
+        HistInfo("firstJetPhi", "1st jet #phi", 10, -TMath::Pi(), TMath::Pi()),
+
+        HistInfo("secondJetPt", "2nd jet p_{T} [GeV]", 10, 30.0, 330.0),
+        HistInfo("secondJetEta", "2nd jet #eta", 10, -2.5, 2.5),
+        HistInfo("secondJetPhi", "2nd jet #phi", 10, -TMath::Pi(), TMath::Pi()),
+
+        HistInfo("thirdJetPt", "3rd jet p_{T} [GeV]", 10, 30.0, 330.0),
+        HistInfo("thirdJetEta", "3rd jet #eta", 10, -2.5, 2.5),
+        HistInfo("thirdJetPhi", "3rd jet #phi", 10, -TMath::Pi(), TMath::Pi()),
+
+        HistInfo("fourthJetPt", "4th jet p_{T} [GeV]", 10, 30.0, 330.0),
+        HistInfo("fourthJetEta", "4th jet #eta", 10, -2.5, 2.5),
+        HistInfo("fourthJetPhi", "4th jet #phi", 10, -TMath::Pi(), TMath::Pi()),
 
     };
     return histInfoVec;
@@ -66,31 +85,44 @@ std::vector< HistInfo > makeDistributionInfo(){
 
 std::vector< double > buildFillingVector( Event& event, const std::string& uncertainty){
 
-    auto varMap = ttZ::computeVariables( event, uncertainty );
-    std::vector< double > fillValues;
-    unsigned ttZFlav = ttZ::ttZFlavPlot( event );
-    fillValues = {
-        event.lepton( 0 ).pt(),
-        event.lepton( 1 ).pt(),
-        event.lepton( 2 ).pt(),
+    auto lepMap = ttZ::computeLeptonVariables(event);
+    auto jetMap = ttZ::computeJetVariables(event, uncertainty);
+    std::vector< double > fillValues = {
 
-        event.lepton( 0 ).absEta(),
-        event.lepton( 1 ).absEta(),
-        event.lepton( 2 ).absEta(),
+        lepMap.at("category"), // category
+        jetMap.at("nJets"), // nJets
+        jetMap.at("nBjets"), // nBjets
 
-        varMap.at("met"),
-        varMap.at("nTI"),
-        varMap.at("mll"),
-        varMap.at("ht"),
+        lepMap.at("dilepPt"), // dilepPt
+        lepMap.at("dilepEta"), // dilepEta
+        lepMap.at("dilepPhi"), // dilepPhi
+        lepMap.at("dilepMass"), // dilepMass
 
-        varMap.at("numberOfJets"),
-        varMap.at("numberOfBJets"),
-        static_cast< double >( event.numberOfVertices() ),
+        jetMap.at("missingEt"), // missingEt
+        jetMap.at("missingPhi"), // missingPhi
 
-        static_cast< double >( ttZFlav ),
+        event.lepton(0).pt(), // leadLepPt
+        event.lepton(0).eta(), // leadLepEta
+        event.lepton(0).phi(), // leadLepPhi
+        event.lepton(1).pt(), // sublLepPt
+        event.lepton(1).eta(), // sublLepEta
+        event.lepton(1).phi(), // sublLepPhi
+        event.lepton(2).pt(), // trailLepPt
+        event.lepton(2).eta(), // trailLepEta
+        event.lepton(2).phi(), // trailLepPhi
 
-        varMap.at("ptZ"),
-        varMap.at("cosThetaStar"),
+        jetMap.at("firstJetPt"), // firstJetPt
+        jetMap.at("firstJetEta"), // firstJetEta
+        jetMap.at("firstJetPhi"), // firstJetPhi
+        jetMap.at("secondJetPt"), // secondJetPt
+        jetMap.at("secondJetEta"), // secondJetEta
+        jetMap.at("secondJetPhi"), // secondJetPhi
+        jetMap.at("thirdJetPt"), // thirdJetPt
+        jetMap.at("thirdJetEta"), // thirdJetEta
+        jetMap.at("thirdJetPhi"), // thirdJetPhi
+        jetMap.at("fourthJetPt"), // fourthJetPt
+        jetMap.at("fourthJetEta"), // fourthJetEta
+        jetMap.at("fourthJetPhi"), // fourthJetPhi
     };
 
     return fillValues;
@@ -646,33 +678,33 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
         plotUncAll( &mergedHistograms[dist][1], proc.size() - 1, histogramsUncDecompUp[dist], histogramsUncDecompDown[dist], &shapeUncNames[0], shapeUncNames.size(), directoryName + histInfoVector[ dist ].name() + plotNameAddition + "_unc.pdf", 1.5 );
     }
 
-    // prepare root file for datacards / combine
-    std::string shape_name = "shapeFile_";
-    shape_name += year + ".root";
-    TFile *file = TFile::Open( shape_name.c_str(), "RECREATE");
-    std::vector< std::string > proc_names = {"data_obs", "ttZ", "ttX", "WZ", "Xgamma", "ZZ", "rare", "Nonprompt",  };
-    TH1D *hist, *histUp, *histDown;
-    // loop over all sample types considered.
-    for( size_t p = 0; p < proc.size() ; ++p ){
-        const char * name = proc_names[p].c_str();
-        hist = (TH1D*)(*mergedHistograms[ 13 ][ p ]).Clone( name );
-        hist->SetName( name );
-        hist->Write();
-        for( const auto& unc : shapeUncNames ){
-            std::string nameUp = proc_names[p]+"_"+unc+"Up";
-
-            histUp = (TH1D*)(*mergedHistogramsUncUp[ unc ][ 13 ][ p ]).Clone( nameUp.c_str() );
-            histUp->SetName( nameUp.c_str() );
-            histUp->Write();
-
-            std::string nameDown = proc_names[p]+"_"+unc+"Down";
-
-            histDown = (TH1D*)(*mergedHistogramsUncDown[ unc ][ 13 ][ p ]).Clone( nameDown.c_str() );
-            histDown->SetName( nameDown.c_str() );
-            histDown->Write();
-        }
-    }
-    file->Close();
+    // // prepare root file for datacards / combine
+    // std::string shape_name = "shapeFile_";
+    // shape_name += year + ".root";
+    // TFile *file = TFile::Open( shape_name.c_str(), "RECREATE");
+    // std::vector< std::string > proc_names = {"data_obs", "ttZ", "ttX", "WZ", "Xgamma", "ZZ", "rare", "Nonprompt",  };
+    // TH1D *hist, *histUp, *histDown;
+    // // loop over all sample types considered.
+    // for( size_t p = 0; p < proc.size() ; ++p ){
+    //     const char * name = proc_names[p].c_str();
+    //     hist = (TH1D*)(*mergedHistograms[ 13 ][ p ]).Clone( name );
+    //     hist->SetName( name );
+    //     hist->Write();
+    //     for( const auto& unc : shapeUncNames ){
+    //         std::string nameUp = proc_names[p]+"_"+unc+"Up";
+    //
+    //         histUp = (TH1D*)(*mergedHistogramsUncUp[ unc ][ 13 ][ p ]).Clone( nameUp.c_str() );
+    //         histUp->SetName( nameUp.c_str() );
+    //         histUp->Write();
+    //
+    //         std::string nameDown = proc_names[p]+"_"+unc+"Down";
+    //
+    //         histDown = (TH1D*)(*mergedHistogramsUncDown[ unc ][ 13 ][ p ]).Clone( nameDown.c_str() );
+    //         histDown->SetName( nameDown.c_str() );
+    //         histDown->Write();
+    //     }
+    // }
+    // file->Close();
 }
 
 
@@ -703,6 +735,7 @@ int main( int argc, char* argv[] ){
          std::find(std::begin(processes), std::end(processes), procName)      == std::end(processes)
     ){
         std::cerr << "At least one of arguments not recognized" << std::endl;
+        std::cerr << "provided arguments: " << year << " " << procName << std::endl;
         std::cerr << "allowed arguments:" << std::endl;
         std::cerr << "year:                          2016, 2017, 2018"                      << std::endl;
         std::cerr << "process to analyze (optional): data, ttZ, ttX, WZ, Xgam, ZZ, rare"    << std::endl;
