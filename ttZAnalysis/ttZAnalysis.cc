@@ -20,6 +20,7 @@
 #include "../Tools/interface/SampleCrossSections.h"
 
 //include ttZ specific code
+#include "interface/ttZObservables.h"
 #include "interface/ttZSelection.h"
 #include "interface/ttZVariables.h"
 
@@ -38,7 +39,7 @@ std::vector< HistInfo > makeDistributionInfo(){
     std::vector< HistInfo > histInfoVec;
     histInfoVec = {
 
-        HistInfo("category", "lepton flavour", 4, -0.5, 3.5),
+        HistInfo("category", "lepton flavour", 4, -0.5, 3.5, std::vector<std::string>({"#mu#mu#mu","#mu#mue","#muee","eee"})),
         HistInfo("nJets", "jet multiplicity", 5, 2.5, 7.5),
         HistInfo("nBjets", "b-jet multiplicity", 3, 0.5, 3.5),
 
@@ -78,15 +79,27 @@ std::vector< HistInfo > makeDistributionInfo(){
         HistInfo("fourthJetEta", "4th jet #eta", 10, -2.5, 2.5),
         HistInfo("fourthJetPhi", "4th jet #phi", 10, -TMath::Pi(), TMath::Pi()),
 
+        #define CONVERT(ARRAY) \
+            std::vector<double>(std::begin(ARRAY), std::end(ARRAY))
+
+        HistInfo("ttzMass", "t#bar{t}Z mass [GeV]", ttZObservables::nBinsRec, CONVERT(ttZObservables::binsRec::ttzMass)),
+        HistInfo("ttbarMass", "t#bar{t} mass [GeV]", ttZObservables::nBinsRec, CONVERT(ttZObservables::binsRec::ttbarMass)),
+        HistInfo("topPt", "top quark p_{T} [GeV]", ttZObservables::nBinsRec, CONVERT(ttZObservables::binsRec::topPt)),
+        HistInfo("deltaPhiTtbar", "|#phi(t)-#phi(#bar{t})|", ttZObservables::nBinsRec, CONVERT(ttZObservables::binsRec::deltaPhiTtbar)),
+        HistInfo("deltaPhiTopZ", "|#phi(t)-#phi(Z)|", ttZObservables::nBinsRec, CONVERT(ttZObservables::binsRec::deltaPhiTopZ)),
+        HistInfo("deltaRapTtbar", "|y(t)-y(#bar{t})|", ttZObservables::nBinsRec, CONVERT(ttZObservables::binsRec::deltaRapTtbar)),
+        HistInfo("deltaRapTopZ", "|y(t)-y(Z)|", ttZObservables::nBinsRec, CONVERT(ttZObservables::binsRec::deltaRapTopZ)),
+
     };
     return histInfoVec;
 }
 
 
-std::vector< double > buildFillingVector( Event& event, const std::string& uncertainty){
+std::vector< double > buildFillingVector( Event& event, const std::string& uncertainty, KinFitter* fitter){
 
     auto lepMap = ttZ::computeLeptonVariables(event);
     auto jetMap = ttZ::computeJetVariables(event, uncertainty);
+    auto recMap = ttZ::performKinematicReconstruction(event, uncertainty, fitter);
     std::vector< double > fillValues = {
 
         lepMap.at("category"), // category
@@ -123,6 +136,14 @@ std::vector< double > buildFillingVector( Event& event, const std::string& uncer
         jetMap.at("fourthJetPt"), // fourthJetPt
         jetMap.at("fourthJetEta"), // fourthJetEta
         jetMap.at("fourthJetPhi"), // fourthJetPhi
+
+        recMap.at("ttzMass"), // ttzMass
+        recMap.at("ttbarMass"), // ttbarMass
+        recMap.at("topPt"), // topPt
+        recMap.at("deltaPhiTtbar"), // deltaPhiTtbar
+        recMap.at("deltaPhiTopZ"), // deltaPhiTopZ
+        recMap.at("deltaRapTtbar"), // deltaRapTtbar
+        recMap.at("deltaRapTopZ"), // deltaRapTopZ
     };
 
     return fillValues;
@@ -152,6 +173,9 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
     std::shared_ptr< TH2 > frMapElectrons = std::shared_ptr< TH2 >( dynamic_cast< TH2* >( frFileElectrons->Get( ( "fakeRate_electron_" + year ).c_str() ) ) );
     frMapElectrons->SetDirectory( gROOT );
     frFileElectrons->Close();
+
+    //initialize kinematic reconstruction
+    KinFitter* fitter = new ttZKinFitter(year=="2016", year=="2017");
 
     //histogram collection, histInfoVector will contain histinfo on all histograms defined at the top of the file withink the makeDist... function
     std::cout << "building histograms" << std::endl;
@@ -282,7 +306,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill nominal histograms
             if( ttZ::passSelectionTTZ( event, "nominal" ) ){
-                auto fillValues = buildFillingVector( event, "nominal" );
+                auto fillValues = buildFillingVector( event, "nominal", fitter );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histograms[ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
                 }
@@ -304,7 +328,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill JEC down histograms
             if( ttZ::passSelectionTTZ( event, "JECDown" ) ){
-                auto fillValues = buildFillingVector( event, "JECDown" );
+                auto fillValues = buildFillingVector( event, "JECDown", fitter );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histogramsUncDown[ "JEC_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
                 }
@@ -312,7 +336,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill JEC up histograms
             if( ttZ::passSelectionTTZ( event, "JECUp" ) ){
-                auto fillValues = buildFillingVector( event, "JECUp" );
+                auto fillValues = buildFillingVector( event, "JECUp", fitter );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histogramsUncUp[ "JEC_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
                 }
@@ -320,7 +344,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill JER down histograms
             if( ttZ::passSelectionTTZ( event, "JERDown" ) ){
-                auto fillValues = buildFillingVector( event, "JERDown" );
+                auto fillValues = buildFillingVector( event, "JERDown", fitter );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histogramsUncDown[ "JER_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
                 }
@@ -328,7 +352,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill JER up histograms
             if( ttZ::passSelectionTTZ( event, "JERUp" ) ){
-                auto fillValues = buildFillingVector( event, "JERUp" );
+                auto fillValues = buildFillingVector( event, "JERUp", fitter );
                 for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
                     histogram::fillValue( histogramsUncUp[ "JER_" + year ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
                 }
@@ -336,7 +360,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             // //fill unclustered down histograms
             // if( ttZ::passSelectionTTZ( event, "UnclDown" ) ){
-            //     auto fillValues = buildFillingVector( event, "UnclDown", massSplitting, nnReader );
+            //     auto fillValues = buildFillingVector( event, "UnclDown", fitter );
             //     for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
             //         histogram::fillValue( histogramsUncDown[ "uncl" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
             //     }
@@ -344,7 +368,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
             //
             // //fill unclustered up histograms
             // if( ttZ::passSelectionTTZ( event, "UnclUp" ) ){
-            //     auto fillValues = buildFillingVector( event, "UnclUp", massSplitting, nnReader );
+            //     auto fillValues = buildFillingVector( event, "UnclUp", fitter );
             //     for( size_t dist = 0; dist < histInfoVector.size(); ++dist ){
             //         histogram::fillValue( histogramsUncUp[ "uncl" ][ dist ][ fillIndex ].get(), fillValues[ dist ], weight );
             //     }
@@ -352,7 +376,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //apply nominal selection and compute nominal variables
             if( !ttZ::passSelectionTTZ( event, "nominal" ) ) continue;
-            auto fillValues = buildFillingVector( event, "nominal" );
+            auto fillValues = buildFillingVector( event, "nominal", fitter );
 
             //fill scale down histograms
             double weightScaleDown;
@@ -705,6 +729,9 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
     //     }
     // }
     // file->Close();
+
+    // free kinematic reconstruction
+    delete fitter;
 }
 
 

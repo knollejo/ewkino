@@ -6,6 +6,9 @@
 class KinFitter {
 public:
 
+    KinFitter(int v=0) : verbosity(v) {}
+    virtual ~KinFitter() {}
+
     struct Particle {
         TLorentzVector vec;
         TMatrixD cov;
@@ -47,7 +50,9 @@ public:
     virtual double WMass() = 0;
     MassConstraint* WMassConstraint(Particle*, Particle*);
 
+    virtual double BottomMass() = 0;
     virtual double TopMass() = 0;
+    MassConstraint* TopMassConstraint(Particle*, Particle*);
     MassConstraint* TopMassConstraint(Particle*, Particle*, Particle*);
 
     struct Result {
@@ -57,12 +62,17 @@ public:
     };
     Result* fit(std::vector<Particle*>, std::vector<MassConstraint*>);
 
+    unsigned int findNeutrinoSolutions(TLorentzVector, TLorentzVector, double&, double&);
+
+private:
+    int verbosity;
+
 };
 
 
 class ttZKinFitter : public KinFitter {
 public:
-    ttZKinFitter(bool, bool);
+    ttZKinFitter(bool, bool, int=0);
     virtual ~ttZKinFitter();
 
     double JetEtUnc(double, double, double);

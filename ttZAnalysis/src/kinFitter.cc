@@ -1,6 +1,7 @@
 #include <string>
 
 #include <TFile.h>
+#include <TMath.h>
 
 #include "../../kinFitter/interface/TFitConstraintM.h"
 #include "../../kinFitter/interface/TFitParticleEtEtaPhi.h"
@@ -66,6 +67,14 @@ KinFitter::MassConstraint* KinFitter::WMassConstraint(Particle* p1, Particle* p2
     return c;
 }
 
+KinFitter::MassConstraint* KinFitter::TopMassConstraint(Particle* p1, Particle* p2) {
+    MassConstraint* c = new MassConstraint;
+    c->particles.push_back(p1);
+    c->particles.push_back(p2);
+    c->mass = TopMass();
+    return c;
+}
+
 KinFitter::MassConstraint* KinFitter::TopMassConstraint(Particle* p1, Particle* p2, Particle* p3) {
     MassConstraint* c = new MassConstraint;
     c->particles.push_back(p1);
@@ -81,7 +90,7 @@ KinFitter::Result* KinFitter::fit(std::vector<Particle*> particles, std::vector<
     fitter.setMaxNbIter(30);
     fitter.setMaxDeltaS(0.01);
     fitter.setMaxF(0.1);
-    fitter.setVerbosity(1);
+    fitter.setVerbosity(verbosity);
 
     // create particles
     unsigned int nP = 0;
@@ -131,6 +140,25 @@ KinFitter::Result* KinFitter::fit(std::vector<Particle*> particles, std::vector<
 
 }
 
+unsigned int KinFitter::findNeutrinoSolutions(TLorentzVector lep, TLorentzVector met, double& first, double& second) {
+    const double a = TMath::Sq(lep.E())-TMath::Sq(lep.Z());
+    const double ksq = 0.5*(TMath::Sq(WMass())-TMath::Sq(lep.M()))+lep.X()*met.X()+lep.Y()*met.Y();
+    const double b = -2.0*ksq*lep.Z();
+    const double c = TMath::Sq(lep.E()*met.X())+TMath::Sq(lep.E()*met.Y())-TMath::Sq(ksq);
+    const double det = TMath::Sq(b)-4.0*a*c;
+    first = 0.0, second = 0.0;
+    if(a==0.0 || det<0.0) return 0;
+    else if(det==0.0) {
+        first = -0.5*b/a;
+        return 1;
+    } else {
+        first = 0.5*(-1.0*b+TMath::Sqrt(det))/a;
+        second = 0.5*(-1.0*b-TMath::Sqrt(det))/a;
+        return 2;
+    }
+
+}
+
 namespace ttZKinFitterHelpers {
 
     const int nBinsEt = 16;
@@ -167,7 +195,7 @@ namespace ttZKinFitterHelpers {
 
 }
 
-ttZKinFitter::ttZKinFitter(bool is2016, bool is2017) {
+ttZKinFitter::ttZKinFitter(bool is2016, bool is2017, int v) : KinFitter(v) {
     std::string year = is2016 ? "2016" : is2017 ? "2017" : "2018";
     TFile* tfile = TFile::Open(("resolutions/resolutions_"+year+"_V05_v3.root").c_str());
     resolElecEt = new TGraphErrors[ttZKinFitterHelpers::nBinsEtaForEt];
