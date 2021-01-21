@@ -1,3 +1,6 @@
+#ifndef kinFitter_H
+#define kinFitter_H
+
 #include <TGraphErrors.h>
 #include <TLorentzVector.h>
 #include <TMatrixD.h>
@@ -103,3 +106,5 @@ protected:
                 * resolMetEt=nullptr,  * resolMetPhi=nullptr;
 
 };
+
+#endif

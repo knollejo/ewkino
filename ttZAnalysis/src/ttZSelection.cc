@@ -110,16 +110,17 @@ bool ttZ::passSelectionLNumber( Event& event ){
 }
 
 
-bool ttZ::passSelectionTTZ( Event& event, const std::string& uncertainty ){
+int ttZ::passSelectionTTZ( Event& event, const std::string& uncertainty ){
 
-    if ( !( event.hasOSSFLightLeptonPair() ) ) return false;
+    if ( !( event.hasOSSFLightLeptonPair() ) ) return 0;
     if ( event.numberOfFOLeptons() == 3 ){
-        if ( numberOfVariedJets( event, uncertainty ) < 4 ) return false;
-        if ( numberOfVariedBJets( event, uncertainty ) < 1 ) return false;
-        if ( std::abs( event.bestZBosonCandidateMass() - particle::mZ ) >= 10 ) return false;
+        if ( numberOfVariedJets( event, uncertainty ) < 3 ) return 0;
+        if ( numberOfVariedBJets( event, uncertainty ) < 1 ) return 0;
+        if ( std::abs( event.bestZBosonCandidateMass() - particle::mZ ) >= 10 ) return 0;
     }
-    else return false;
-    return true;
+    else return 0;
+    if ( numberOfVariedJets( event, uncertainty ) == 3 ) return 3;
+    else return 4;
 }
 
 
@@ -213,13 +214,4 @@ double ttZ::fakeRateWeight( const Event& event, const std::shared_ptr< TH2 >& mu
         weight *= - fr / ( 1. - fr );
     }
     return weight;
-}
-
-
-unsigned ttZ::ttZFlavPlot( const Event& event ){
-    if( event.numberOfMuons() == 3 ) return 0;
-    if( event.numberOfMuons() == 2 ) return 1;
-    if( event.numberOfMuons() == 1 ) return 2;
-    if( event.numberOfElectrons() == 3 ) return 3;
-    return 0;
 }

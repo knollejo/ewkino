@@ -17,7 +17,7 @@ namespace ttZ{
     Met variedMet( const Event& event, const std::string& uncertainty );
 
     bool passSelectionLNumber( Event& event );
-    bool passSelectionTTZ( Event& event, const std::string& uncertainty );
+    int passSelectionTTZ( Event& event, const std::string& uncertainty );
 
     bool passTriggerSelection( const Event& event );
     bool passPtCuts( const Event& event );

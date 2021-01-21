@@ -1,32 +1,47 @@
-#import python library classes
-import os
-import sys
+import datetime, os, subprocess, sys
 
-#import other code from framework
-from jobSubmission import submitQsubJob, initializeJobScript
+def get_timestamp():
+    return '{:%y%m%d_%H%M%S}'.format(datetime.datetime.now())
+
+def submit(year, process, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
+    with open('submit/run_{}_{}_{}.sh'.format(timestamp, year, process), 'w') as f:
+        f.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
+        f.write('cd {}\n'.format(os.path.abspath(os.getcwd())))
+        f.write('eval `scram runtime -sh`\n')
+        f.write('./ttZAnalysis {} {} {}\n'.format(year, process, timestamp))
+    sub_command = 'qsub submit/run_{}_{}_{}.sh -l walltime=24:00:00'.format(timestamp, year, process)
+    log_file = ' -o submit/log_{}_{}_{}.txt'.format(timestamp, year, process)
+    err_file = ' -e submit/err_{}_{}_{}.txt'.format(timestamp, year, process)
+    qsub_output = subprocess.check_output(sub_command+log_file+err_file, shell=True, stderr=subprocess.STDOUT)
+    print timestamp, year, process, qsub_output.split('\n')[0]
+
+def submit_year(year, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
+    processes = (
+        "data",
+        "ttZ",
+        "ttH", "tZq", "tWZ", "ttW", "tHQ", "tHW", "ttZlight", "tttt", "ttWW", "ttWZ", "ttZZ",
+        "WZ3L", "WZ2L",
+        "DY", "tG", "ttG", "WG", "tt",
+        "ZZ4L", "ZZ2E2M", "ZZ2E2T", "ZZ2M2T", "ZZ4E", "ZZ4M", "ggHZZ", "VBFHZZ", "WpHZZ", "WmHZZ", "ZHZZ",
+        "WZG", "ZZZ", "WZZ", "WWZ", "WWW", "WWDS", "WW",
+    )
+    for process in processes:
+        submit(year, process, timestamp)
+
+def submit_all():
+    timestamp = get_timestamp()
+    years = (2016, 2017, 2018)
+    for year in years:
+        submit_year(year, timestamp)
 
 if __name__ == '__main__' :
-
-    #WARNING : it is assumed this script is run from the 'skimmer' directory
-    current_directory = os.path.dirname( os.path.abspath( __file__ ) )
-    print current_directory
-
-    year    = sys.argv[1]
-    process = sys.argv[2]
-    wall_time = '24:00:00'
-    if len( sys.argv ) != 3:
-        print( 'Error: submitJobs.py requires additional command-line arguments.' )
-        print( 'Usage: python submitJobs.py < year > < process >' )
-        sys.exit()
-
-    #make a list of samples (the main directories) and the subdirectories with the latest version of the ntuples ( one for each main directory )
-    #make a job script
-    script_name = 'submit.sh'
-    with open( script_name, 'w') as script:
-        initializeJobScript( script )
-        script.write('cd {}\n'.format( current_directory ) )
-        skim_command = './ttZAnalysis {} {}\n'.format( year, process )
-        script.write( skim_command )
-
-    #submit job and catch errors
-    submitQsubJob( script_name, wall_time )
+    if len(sys.argv)>2:
+        submit(sys.argv[1], sys.argv[2])
+    elif len(sys.argv)>1:
+        submit_year(sys.argv[1])
+    else:
+        submit_all()

@@ -3,7 +3,6 @@
 //include c++ library classes
 #include <algorithm>
 #include <cmath>
-#include <algorithm>
 
 //include ROOT classes
 #include "TLorentzVector.h"
@@ -12,18 +11,19 @@
 
 //include other parts of framework
 #include "../interface/ttZSelection.h"
-#include "../interface/ttZObservables.h"
 
+ttZ::leptonVariables ttZ::computeLeptonVariables(Event& event) {
+    const int category = event.numberOfElectrons();
 
-#define IN_RANGE(VAL, MIN, MAX) \
-    TMath::Min(MAX-0.001*(MAX-MIN), TMath::Max(MIN+0.001*(MAX-MIN), VAL))
-#define PHI_IN_RANGE(VAL) \
-    (isnan(VAL) ? -999.0 : IN_RANGE(TVector2::Phi_mpi_pi(VAL), -TMath::Pi(), TMath::Pi()))
-#define DPHI_IN_RANGE(VAL) \
-    (VAL<-900.0 ? VAL : IN_RANGE(VAL, -TMath::Pi(), TMath::Pi()))
-
-std::map<std::string, double> ttZ::computeLeptonVariables(Event& event) {
-    const double category = 1.0*event.numberOfElectrons();
+    const double leadLepPt = event.leptonCollection()[0].pt();
+    const double leadLepEta = event.leptonCollection()[0].eta();
+    const double leadLepPhi = event.leptonCollection()[0].phi();
+    const double sublLepPt = event.leptonCollection()[1].pt();
+    const double sublLepEta = event.leptonCollection()[1].eta();
+    const double sublLepPhi = event.leptonCollection()[1].phi();
+    const double trailLepPt = event.leptonCollection()[2].pt();
+    const double trailLepEta = event.leptonCollection()[2].eta();
+    const double trailLepPhi = event.leptonCollection()[2].phi();
 
     Lepton& lep1 = event.leptonCollection()[event.bestZBosonCandidateIndices().first];
     Lepton& lep2 = event.leptonCollection()[event.bestZBosonCandidateIndices().second];
@@ -33,22 +33,21 @@ std::map<std::string, double> ttZ::computeLeptonVariables(Event& event) {
     const double dilepPhi = dilep.phi();
     const double dilepMass = dilep.mass();
 
-    std::map<std::string, double> ret = {
-        {"category", category},
-        {"dilepPt", IN_RANGE(dilepPt, 0.0, 500.0)},
-        {"dilepEta", IN_RANGE(dilepEta, -3.0, 3.0)},
-        {"dilepPhi", PHI_IN_RANGE(dilepPhi)},
-        {"dilepMass", IN_RANGE(dilepMass, 81.0, 101.0)},
-    };
-    return ret;
+    return leptonVariables(
+        category,
+        leadLepPt, leadLepEta, leadLepPhi,
+        sublLepPt, sublLepEta, sublLepPhi,
+        trailLepPt, trailLepEta, trailLepPhi,
+        dilepPt, dilepEta, dilepPhi, dilepMass
+    );
 }
 
-std::map<std::string, double> ttZ::computeJetVariables(Event& event, const std::string& unc) {
+ttZ::jetVariables ttZ::computeJetVariables(Event& event, const std::string& unc) {
     JetCollection variedJetCollection = ttZ::variedJetCollection(event, unc);
     Met variedMet = ttZ::variedMet(event, unc);
 
-    const double nJets = 1.0*variedJetCollection.size();
-    const double nBjets = 1.0*variedJetCollection.numberOfMediumBTaggedJets();
+    const int nJets = variedJetCollection.size();
+    const int nBjets = variedJetCollection.numberOfMediumBTaggedJets();
 
     const double missingEt = variedMet.pt();
     const double missingPhi = variedMet.phi();
@@ -73,25 +72,14 @@ std::map<std::string, double> ttZ::computeJetVariables(Event& event, const std::
     const double fourthJetEta = has_fourth_jet ? variedJetCollection[3].eta() : -999.0;
     const double fourthJetPhi = has_fourth_jet ? variedJetCollection[3].phi() : -999.0;
 
-    std::map<std::string, double> ret = {
-        {"nJets", IN_RANGE(nJets, -0.5, 7.5)},
-        {"nBjets", IN_RANGE(nBjets, -0.5, 3.5)},
-        {"missingEt", IN_RANGE(missingEt, 0.0, 220.0)},
-        {"missingPhi", PHI_IN_RANGE(missingPhi)},
-        {"firstJetPt", IN_RANGE(firstJetPt, 30.0, 330.0)},
-        {"firstJetEta", IN_RANGE(firstJetEta, -2.5, 2.5)},
-        {"firstJetPhi", PHI_IN_RANGE(firstJetPhi)},
-        {"secondJetPt", IN_RANGE(secondJetPt, 30.0, 330.0)},
-        {"secondJetEta", IN_RANGE(secondJetEta, -2.5, 2.5)},
-        {"secondJetPhi", PHI_IN_RANGE(secondJetPhi)},
-        {"thirdJetPt", IN_RANGE(thirdJetPt, 30.0, 330.0)},
-        {"thirdJetEta", IN_RANGE(thirdJetEta, -2.5, 2.5)},
-        {"thirdJetPhi", PHI_IN_RANGE(thirdJetPhi)},
-        {"fourthJetPt", IN_RANGE(fourthJetPt, 30.0, 330.0)},
-        {"fourthJetEta", IN_RANGE(fourthJetEta, -2.5, 2.5)},
-        {"fourthJetPhi", PHI_IN_RANGE(fourthJetPhi)},
-    };
-    return ret;
+    return jetVariables(
+        nJets, nBjets,
+        missingEt, missingPhi,
+        firstJetPt, firstJetEta, firstJetPhi,
+        secondJetPt, secondJetEta, secondJetPhi,
+        thirdJetPt, thirdJetEta, thirdJetPhi,
+        fourthJetPt, fourthJetEta, fourthJetPhi
+    );
 }
 
 struct FitResult {
@@ -110,7 +98,7 @@ double deltaRap(double rap1, double rap2) {
     return TMath::Abs(rap1-rap2);
 }
 
-std::map<std::string, double> ttZ::performKinematicReconstruction(Event& event, const std::string& unc, KinFitter* fitter) {
+ttZ::reconstructedVariables ttZ::performKinematicReconstruction(Event& event, const std::string& unc, KinFitter* fitter) {
     // prepare third lepton
     Lepton& thirdLep = event.WLepton();
     TLorentzVector lvLepton;
@@ -271,14 +259,8 @@ std::map<std::string, double> ttZ::performKinematicReconstruction(Event& event, 
     const double deltaRapTtbar = deltaRap(top.Rapidity(), antitop.Rapidity());
     const double deltaRapTopZ = deltaRap(top.Rapidity(), zboson.Rapidity());
 
-    std::map<std::string, double> ret = {
-        {"ttzMass", IN_RANGE(ttzMass, ttZObservables::binsRec::ttzMass[0], ttZObservables::binsRec::ttzMass[ttZObservables::nBinsRec])},
-        {"ttbarMass", IN_RANGE(ttbarMass, ttZObservables::binsRec::ttbarMass[0], ttZObservables::binsRec::ttbarMass[ttZObservables::nBinsRec])},
-        {"topPt", IN_RANGE(topPt, ttZObservables::binsRec::topPt[0], ttZObservables::binsRec::topPt[ttZObservables::nBinsRec])},
-        {"deltaPhiTtbar", IN_RANGE(deltaPhiTtbar, ttZObservables::binsRec::deltaPhiTtbar[0], ttZObservables::binsRec::deltaPhiTtbar[ttZObservables::nBinsRec])},
-        {"deltaPhiTopZ", IN_RANGE(deltaPhiTopZ, ttZObservables::binsRec::deltaPhiTopZ[0], ttZObservables::binsRec::deltaPhiTopZ[ttZObservables::nBinsRec])},
-        {"deltaRapTtbar", IN_RANGE(deltaRapTtbar, ttZObservables::binsRec::deltaRapTtbar[0], ttZObservables::binsRec::deltaRapTtbar[ttZObservables::nBinsRec])},
-        {"deltaRapTopZ", IN_RANGE(deltaRapTopZ, ttZObservables::binsRec::deltaRapTopZ[0], ttZObservables::binsRec::deltaRapTopZ[ttZObservables::nBinsRec])},
-    };
-    return ret;
+    return reconstructedVariables(
+        ttzMass, ttbarMass, topPt,
+        deltaPhiTtbar, deltaPhiTopZ, deltaRapTtbar, deltaRapTopZ
+    );
 }
