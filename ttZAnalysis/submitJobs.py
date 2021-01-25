@@ -1,4 +1,4 @@
-import datetime, os, subprocess, sys
+import datetime, os, subprocess, sys, time
 
 def get_timestamp():
     return '{:%y%m%d_%H%M%S}'.format(datetime.datetime.now())
@@ -11,11 +11,21 @@ def submit(year, process, timestamp=None):
         f.write('cd {}\n'.format(os.path.abspath(os.getcwd())))
         f.write('eval `scram runtime -sh`\n')
         f.write('./ttZAnalysis {} {} {}\n'.format(year, process, timestamp))
-    sub_command = 'qsub submit/run_{}_{}_{}.sh -l walltime=24:00:00'.format(timestamp, year, process)
-    log_file = ' -o submit/log_{}_{}_{}.txt'.format(timestamp, year, process)
-    err_file = ' -e submit/err_{}_{}_{}.txt'.format(timestamp, year, process)
-    qsub_output = subprocess.check_output(sub_command+log_file+err_file, shell=True, stderr=subprocess.STDOUT)
-    print timestamp, year, process, qsub_output.split('\n')[0]
+        f.write('echo "Job done!"\n')
+    sub = 'qsub submit/run_{}_{}_{}.sh -l walltime=24:00:00'.format(timestamp, year, process)
+    nam = ' -N {}_{}'.format(year, process)
+    log = ' -o submit/log_{}_{}_{}.txt'.format(timestamp, year, process)
+    err = ' -e submit/err_{}_{}_{}.txt'.format(timestamp, year, process)
+    command = sub+nam+log+err
+    while True:
+        try:
+            qsub_output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as error:
+            print('Caught error : "{}". Attempting resubmission.'.format(error.output.split('\n')[0]))
+            time.sleep(1)
+        else:
+            print timestamp, year, process, qsub_output.split('\n')[0]
+            return
 
 def submit_year(year, timestamp=None):
     if timestamp is None:

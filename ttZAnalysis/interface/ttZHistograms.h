@@ -5,6 +5,7 @@
 #include <string>
 
 //include ROOT classes
+#include "TDirectory.h"
 #include "TMath.h"
 #include "TH1.h"
 
@@ -19,11 +20,11 @@ public:
     void SetValues(ttZ::leptonVariables, ttZ::jetVariables, ttZ::reconstructedVariables);
     void Fill(double, int, int, int);
 
-    void Write();
+    void Write(TDirectory*);
 
 protected:
     void Fill(double, int);
-    void Write(int, std::string);
+    void Write(TDirectory*, std::string, TH1F**);
 
     const int nVariants, nSelections, nSystematics;
     const int nHistograms;

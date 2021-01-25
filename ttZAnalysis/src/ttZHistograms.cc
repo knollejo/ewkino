@@ -297,56 +297,57 @@ void ttZHistograms::Fill(double weight, int histogram) {
     hists_deltaRapTopZ[histogram]->Fill(value_deltaRapTopZ, weight);
 }
 
-void ttZHistograms::Write() {
+void ttZHistograms::Write(TDirectory* directory) {
+    Write(directory, "category", hists_category);
+    Write(directory, "nJets", hists_nJets);
+    Write(directory, "nBjets", hists_nBjets);
+    Write(directory, "dilepPt", hists_dilepPt);
+    Write(directory, "dilepEta", hists_dilepEta);
+    Write(directory, "dilepPhi", hists_dilepPhi);
+    Write(directory, "dilepMass", hists_dilepMass);
+    Write(directory, "missingEt", hists_missingEt);
+    Write(directory, "missingPhi", hists_missingPhi);
+    Write(directory, "leadLepPt", hists_leadLepPt);
+    Write(directory, "leadLepEta", hists_leadLepEta);
+    Write(directory, "leadLepPhi", hists_leadLepPhi);
+    Write(directory, "sublLepPt", hists_sublLepPt);
+    Write(directory, "sublLepEta", hists_sublLepEta);
+    Write(directory, "sublLepPhi", hists_sublLepPhi);
+    Write(directory, "trailLepPt", hists_trailLepPt);
+    Write(directory, "trailLepEta", hists_trailLepEta);
+    Write(directory, "trailLepPhi", hists_trailLepPhi);
+    Write(directory, "firstJetPt", hists_firstJetPt);
+    Write(directory, "firstJetEta", hists_firstJetEta);
+    Write(directory, "firstJetPhi", hists_firstJetPhi);
+    Write(directory, "secondJetPt", hists_secondJetPt);
+    Write(directory, "secondJetEta", hists_secondJetEta);
+    Write(directory, "secondJetPhi", hists_secondJetPhi);
+    Write(directory, "thirdJetPt", hists_thirdJetPt);
+    Write(directory, "thirdJetEta", hists_thirdJetEta);
+    Write(directory, "thirdJetPhi", hists_thirdJetPhi);
+    Write(directory, "fourthJetPt", hists_fourthJetPt);
+    Write(directory, "fourthJetEta", hists_fourthJetEta);
+    Write(directory, "fourthJetPhi", hists_fourthJetPhi);
+    Write(directory, "ttzMass", hists_ttzMass);
+    Write(directory, "ttbarMass", hists_ttbarMass);
+    Write(directory, "topPt", hists_topPt);
+    Write(directory, "deltaPhiTtbar", hists_deltaPhiTtbar);
+    Write(directory, "deltaPhiTopZ", hists_deltaPhiTopZ);
+    Write(directory, "deltaRapTtbar", hists_deltaRapTtbar);
+    Write(directory, "deltaRapTopZ", hists_deltaRapTopZ);
+}
+
+void ttZHistograms::Write(TDirectory* directory, std::string name, TH1F** hists) {
+    directory->mkdir(name.c_str())->cd();
     for(int iVar=0; iVar<nVariants; iVar++) {
         const std::string sVar = "_var"+std::to_string(iVar);
         for(int iSel=0; iSel<nSelections; iSel++) {
             const std::string sSel = "_sel"+std::to_string(iSel);
-            Write(iVar+nVariants*iSel, sVar+sSel+"_stat");
+            hists[iVar+nVariants*iSel]->Write((name+sVar+sSel+"_stat").c_str());
             for(int iSys=0; iSys<nSystematics; iSys++) {
                 const std::string sSys = "_sys"+std::to_string(iSys);
-                Write(iVar+nVariants*iSel+nVariants*nSelections*(1+iSys), sVar+sSel+sSys);
+                hists[iVar+nVariants*iSel+nVariants*nSelections*(1+iSys)]->Write((name+sVar+sSel+sSys).c_str());
             }
         }
     }
-}
-
-void ttZHistograms::Write(int iHist, std::string postfix) {
-    hists_category[iHist]->Write(("category"+postfix).c_str());
-    hists_nJets[iHist]->Write(("nJets"+postfix).c_str());
-    hists_nBjets[iHist]->Write(("nBjets"+postfix).c_str());
-    hists_dilepPt[iHist]->Write(("dilepPt"+postfix).c_str());
-    hists_dilepEta[iHist]->Write(("dilepEta"+postfix).c_str());
-    hists_dilepPhi[iHist]->Write(("dilepPhi"+postfix).c_str());
-    hists_dilepMass[iHist]->Write(("dilepMass"+postfix).c_str());
-    hists_missingEt[iHist]->Write(("missingEt"+postfix).c_str());
-    hists_missingPhi[iHist]->Write(("missingPhi"+postfix).c_str());
-    hists_leadLepPt[iHist]->Write(("leadLepPt"+postfix).c_str());
-    hists_leadLepEta[iHist]->Write(("leadLepEta"+postfix).c_str());
-    hists_leadLepPhi[iHist]->Write(("leadLepPhi"+postfix).c_str());
-    hists_sublLepPt[iHist]->Write(("sublLepPt"+postfix).c_str());
-    hists_sublLepEta[iHist]->Write(("sublLepEta"+postfix).c_str());
-    hists_sublLepPhi[iHist]->Write(("sublLepPhi"+postfix).c_str());
-    hists_trailLepPt[iHist]->Write(("trailLepPt"+postfix).c_str());
-    hists_trailLepEta[iHist]->Write(("trailLepEta"+postfix).c_str());
-    hists_trailLepPhi[iHist]->Write(("trailLepPhi"+postfix).c_str());
-    hists_firstJetPt[iHist]->Write(("firstJetPt"+postfix).c_str());
-    hists_firstJetEta[iHist]->Write(("firstJetEta"+postfix).c_str());
-    hists_firstJetPhi[iHist]->Write(("firstJetPhi"+postfix).c_str());
-    hists_secondJetPt[iHist]->Write(("secondJetPt"+postfix).c_str());
-    hists_secondJetEta[iHist]->Write(("secondJetEta"+postfix).c_str());
-    hists_secondJetPhi[iHist]->Write(("secondJetPhi"+postfix).c_str());
-    hists_thirdJetPt[iHist]->Write(("thirdJetPt"+postfix).c_str());
-    hists_thirdJetEta[iHist]->Write(("thirdJetEta"+postfix).c_str());
-    hists_thirdJetPhi[iHist]->Write(("thirdJetPhi"+postfix).c_str());
-    hists_fourthJetPt[iHist]->Write(("fourthJetPt"+postfix).c_str());
-    hists_fourthJetEta[iHist]->Write(("fourthJetEta"+postfix).c_str());
-    hists_fourthJetPhi[iHist]->Write(("fourthJetPhi"+postfix).c_str());
-    hists_ttzMass[iHist]->Write(("ttzMass"+postfix).c_str());
-    hists_ttbarMass[iHist]->Write(("ttbarMass"+postfix).c_str());
-    hists_topPt[iHist]->Write(("topPt"+postfix).c_str());
-    hists_deltaPhiTtbar[iHist]->Write(("deltaPhiTtbar"+postfix).c_str());
-    hists_deltaPhiTopZ[iHist]->Write(("deltaPhiTopZ"+postfix).c_str());
-    hists_deltaRapTtbar[iHist]->Write(("deltaRapTtbar"+postfix).c_str());
-    hists_deltaRapTopZ[iHist]->Write(("deltaRapTopZ"+postfix).c_str());
 }

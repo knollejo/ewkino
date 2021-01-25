@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 
 #include <TFile.h>
@@ -115,7 +116,9 @@ KinFitter::Result* KinFitter::fit(std::vector<Particle*> particles, std::vector<
     }
 
     // perform the fit
+    std::cerr.setstate(std::ios_base::failbit);
     fitter.fit();
+    std::cerr.clear();
 
     // save the result
     Result* r = new Result;

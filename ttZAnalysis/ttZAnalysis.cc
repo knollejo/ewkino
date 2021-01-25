@@ -24,7 +24,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
     //check setup
     analysisTools::checkYearString( year );
-    const bool is_signal = (procName == "ttZ");
+    const bool is_ttZ = false;//(procName == "ttZ");
     const bool is_data = (procName == "data");
     const bool is_2016 = (year=="2016");
     const bool is_2017 = (year=="2017");
@@ -55,7 +55,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
     //initialize histograms
     std::cout << "building histograms" << std::endl;
-    const int nVariants = is_signal ? 4 : 2;
+    const int nVariants = is_ttZ ? 6 : is_data ? 2 : 3;
     const int nSelections = 3;
     const int nPdfVariations = 100;
     const int nSystematics = is_data ? 1 : 1+28+nPdfVariations;
@@ -72,7 +72,6 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
         bool sampleHasPdfAndScale = true;
 
         for( long unsigned entry = 0; entry < treeReader.numberOfEntries(); ++entry ){
-            if(entry>1000) break;
             Event event = treeReader.buildEvent( entry );
 
             //check if sample has pdf and scale information stored, try-catch blocks for every event are too slow
@@ -110,13 +109,16 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
             }
 
             //apply fake-rate weight
+            bool is_tight = true;
             if( !ttZ::leptonsAreTight( event ) ){
-                if( event.isMC() ) continue;
-                is_prompt = false;
+                is_tight = false;
                 weight *= ttZ::fakeRateWeight( event, frMapMuons, frMapElectrons );
             }
+            if( !is_data && !is_prompt && !is_tight ) continue;
 
             //fill nominal histograms
+            const int iVariant = is_data ? (is_tight ? 0 : 1)
+                               : (is_prompt ? (is_tight ? 0 : 2) : 1);
             int passed_selection = ttZ::passSelectionTTZ( event, "nominal" );
             if( passed_selection ){
 
@@ -125,90 +127,90 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
                 auto recVars = ttZ::performKinematicReconstruction(event, "nominal", fitter);
 
                 histograms.SetValues(lepVars, jetVars, recVars);
-                histograms.Fill(weight, is_prompt ? 0 : 1, 0, 0);
-                histograms.Fill(weight, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 0);
+                histograms.Fill(weight, iVariant, 0, 0);
+                histograms.Fill(weight, iVariant, passed_selection==3 ? 1 : 2, 0);
 
                 //no uncertainties for data
                 if( event.isData() ) continue;
 
                 //fill scale variation histograms
                 const double weightScaleRenDown = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_0p5_MuF_1() : 1.0;
-                histograms.Fill(weight*weightScaleRenDown, is_prompt ? 0 : 1, 0, 7);
-                histograms.Fill(weight*weightScaleRenDown, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 7);
+                histograms.Fill(weight*weightScaleRenDown, iVariant, 0, 7);
+                histograms.Fill(weight*weightScaleRenDown, iVariant, passed_selection==3 ? 1 : 2, 7);
                 const double weightScaleRenUp = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_2_MuF_1() : 1.0;
-                histograms.Fill(weight*weightScaleRenUp, is_prompt ? 0 : 1, 0, 8);
-                histograms.Fill(weight*weightScaleRenUp, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 8);
+                histograms.Fill(weight*weightScaleRenUp, iVariant, 0, 8);
+                histograms.Fill(weight*weightScaleRenUp, iVariant, passed_selection==3 ? 1 : 2, 8);
                 const double weightScaleFacDown = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_1_MuF_0p5() : 1.0;
-                histograms.Fill(weight*weightScaleFacDown, is_prompt ? 0 : 1, 0, 9);
-                histograms.Fill(weight*weightScaleFacDown, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 9);
+                histograms.Fill(weight*weightScaleFacDown, iVariant, 0, 9);
+                histograms.Fill(weight*weightScaleFacDown, iVariant, passed_selection==3 ? 1 : 2, 9);
                 const double weightScaleFacUp = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_1_MuF_2() : 1.0;
-                histograms.Fill(weight*weightScaleFacUp, is_prompt ? 0 : 1, 0, 10);
-                histograms.Fill(weight*weightScaleFacUp, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 10);
+                histograms.Fill(weight*weightScaleFacUp, iVariant, 0, 10);
+                histograms.Fill(weight*weightScaleFacUp, iVariant, passed_selection==3 ? 1 : 2, 10);
                 const double weightScaleBothDown = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_0p5_MuF_0p5() : 1.0;
-                histograms.Fill(weight*weightScaleBothDown, is_prompt ? 0 : 1, 0, 11);
-                histograms.Fill(weight*weightScaleBothDown, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 11);
+                histograms.Fill(weight*weightScaleBothDown, iVariant, 0, 11);
+                histograms.Fill(weight*weightScaleBothDown, iVariant, passed_selection==3 ? 1 : 2, 11);
                 const double weightScaleBothUp = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_2_MuF_2() : 1.0;
-                histograms.Fill(weight*weightScaleBothUp, is_prompt ? 0 : 1, 0, 12);
-                histograms.Fill(weight*weightScaleBothUp, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 12);
+                histograms.Fill(weight*weightScaleBothUp, iVariant, 0, 12);
+                histograms.Fill(weight*weightScaleBothUp, iVariant, passed_selection==3 ? 1 : 2, 12);
 
                 //fill pdf histograms
                 for( unsigned pdf_i = 0; pdf_i < nPdfVariations; ++pdf_i){
                     const double weightPdf = sampleHasPdfAndScale ? event.generatorInfo().relativeWeightPdfVar(pdf_i) : 1.;
-                    histograms.Fill(weight*weightPdf, is_prompt ? 0 : 1, 0, 27+pdf_i);
-                    histograms.Fill(weight*weightPdf, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 27+pdf_i);
+                    histograms.Fill(weight*weightPdf, iVariant, 0, 27+pdf_i);
+                    histograms.Fill(weight*weightPdf, iVariant, passed_selection==3 ? 1 : 2, 27+pdf_i);
                 }
 
                 //fill pileup histograms
                 double weightPileupDown = reweighter[ "pileup" ]->weightDown( event ) / reweighter[ "pileup" ]->weight( event );
                 if ( std::isnan(weightPileupDown) ) weightPileupDown = 0.;
-                histograms.Fill(weight*weightPileupDown, is_prompt ? 0 : 1, 0, 13);
-                histograms.Fill(weight*weightPileupDown, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 13);
+                histograms.Fill(weight*weightPileupDown, iVariant, 0, 13);
+                histograms.Fill(weight*weightPileupDown, iVariant, passed_selection==3 ? 1 : 2, 13);
                 double weightPileupUp = reweighter[ "pileup" ]->weightUp( event ) / reweighter[ "pileup" ]->weight( event );
                 if ( std::isnan(weightPileupUp) ) weightPileupUp = 0.;
-                histograms.Fill(weight*weightPileupUp, is_prompt ? 0 : 1, 0, 14);
-                histograms.Fill(weight*weightPileupUp, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 14);
+                histograms.Fill(weight*weightPileupUp, iVariant, 0, 14);
+                histograms.Fill(weight*weightPileupUp, iVariant, passed_selection==3 ? 1 : 2, 14);
 
                 //fill b-tag histograms
                 const double weightBTagHeavyDown = reweighter[ "bTag_heavy" ]->weightDown( event ) / reweighter[ "bTag_heavy" ]->weight( event );
-                histograms.Fill(weight*weightBTagHeavyDown, is_prompt ? 0 : 1, 0, 15);
-                histograms.Fill(weight*weightBTagHeavyDown, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 15);
+                histograms.Fill(weight*weightBTagHeavyDown, iVariant, 0, 15);
+                histograms.Fill(weight*weightBTagHeavyDown, iVariant, passed_selection==3 ? 1 : 2, 15);
                 const double weightBTagHeavyUp = reweighter[ "bTag_heavy" ]->weightUp( event ) / reweighter[ "bTag_heavy" ]->weight( event );
-                histograms.Fill(weight*weightBTagHeavyUp, is_prompt ? 0 : 1, 0, 16);
-                histograms.Fill(weight*weightBTagHeavyUp, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 16);
+                histograms.Fill(weight*weightBTagHeavyUp, iVariant, 0, 16);
+                histograms.Fill(weight*weightBTagHeavyUp, iVariant, passed_selection==3 ? 1 : 2, 16);
                 const double weightBTagLightDown = reweighter[ "bTag_light" ]->weightDown( event ) / reweighter[ "bTag_light" ]->weight( event );
-                histograms.Fill(weight*weightBTagLightDown, is_prompt ? 0 : 1, 0, 17);
-                histograms.Fill(weight*weightBTagLightDown, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 17);
+                histograms.Fill(weight*weightBTagLightDown, iVariant, 0, 17);
+                histograms.Fill(weight*weightBTagLightDown, iVariant, passed_selection==3 ? 1 : 2, 17);
                 const double weightBTagLightUp = reweighter[ "bTag_light" ]->weightUp( event ) / reweighter[ "bTag_light" ]->weight( event );
-                histograms.Fill(weight*weightBTagLightUp, is_prompt ? 0 : 1, 0, 18);
-                histograms.Fill(weight*weightBTagLightUp, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 18);
+                histograms.Fill(weight*weightBTagLightUp, iVariant, 0, 18);
+                histograms.Fill(weight*weightBTagLightUp, iVariant, passed_selection==3 ? 1 : 2, 18);
 
                 //fill prefiring histograms
                 const double weightPrefireDown = reweighter[ "prefire" ]->weightDown( event ) / reweighter[ "prefire" ]->weight( event );
-                histograms.Fill(weight*weightPrefireDown, is_prompt ? 0 : 1, 0, 19);
-                histograms.Fill(weight*weightPrefireDown, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 19);
+                histograms.Fill(weight*weightPrefireDown, iVariant, 0, 19);
+                histograms.Fill(weight*weightPrefireDown, iVariant, passed_selection==3 ? 1 : 2, 19);
                 const double weightPrefireUp = reweighter[ "prefire" ]->weightUp( event ) / reweighter[ "prefire" ]->weight( event );
-                histograms.Fill(weight*weightPrefireUp, is_prompt ? 0 : 1, 0, 20);
-                histograms.Fill(weight*weightPrefireUp, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 20);
+                histograms.Fill(weight*weightPrefireUp, iVariant, 0, 20);
+                histograms.Fill(weight*weightPrefireUp, iVariant, passed_selection==3 ? 1 : 2, 20);
 
                 //fill lepton histograms
                 const double leptonIDWeightDownMuon = reweighter[ "muonID" ]->weightDown( event ) / reweighter[ "muonID" ]->weight( event );
-                histograms.Fill(weight*leptonIDWeightDownMuon, is_prompt ? 0 : 1, 0, 21);
-                histograms.Fill(weight*leptonIDWeightDownMuon, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 21);
+                histograms.Fill(weight*leptonIDWeightDownMuon, iVariant, 0, 21);
+                histograms.Fill(weight*leptonIDWeightDownMuon, iVariant, passed_selection==3 ? 1 : 2, 21);
                 const double leptonIDWeightUpMuon = reweighter[ "muonID" ]->weightUp( event ) / reweighter[ "muonID" ]->weight( event );
-                histograms.Fill(weight*leptonIDWeightUpMuon, is_prompt ? 0 : 1, 0, 22);
-                histograms.Fill(weight*leptonIDWeightUpMuon, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 22);
+                histograms.Fill(weight*leptonIDWeightUpMuon, iVariant, 0, 22);
+                histograms.Fill(weight*leptonIDWeightUpMuon, iVariant, passed_selection==3 ? 1 : 2, 22);
                 const double recoWeightDownElec = reweighter[ "electronReco_pTBelow20" ]->weightDown( event ) * reweighter[ "electronReco_pTAbove20" ]->weightDown( event ) / ( reweighter[ "electronReco_pTBelow20" ]->weight( event ) * reweighter[ "electronReco_pTAbove20" ]->weight( event ) );
-                histograms.Fill(weight*recoWeightDownElec, is_prompt ? 0 : 1, 0, 23);
-                histograms.Fill(weight*recoWeightDownElec, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 23);
+                histograms.Fill(weight*recoWeightDownElec, iVariant, 0, 23);
+                histograms.Fill(weight*recoWeightDownElec, iVariant, passed_selection==3 ? 1 : 2, 23);
                 const double recoWeightUpElec = reweighter[ "electronReco_pTBelow20" ]->weightUp( event ) * reweighter[ "electronReco_pTAbove20" ]->weightUp( event ) / ( reweighter[ "electronReco_pTBelow20" ]->weight( event ) * reweighter[ "electronReco_pTAbove20" ]->weight( event ) );
-                histograms.Fill(weight*recoWeightUpElec, is_prompt ? 0 : 1, 0, 24);
-                histograms.Fill(weight*recoWeightUpElec, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 24);
+                histograms.Fill(weight*recoWeightUpElec, iVariant, 0, 24);
+                histograms.Fill(weight*recoWeightUpElec, iVariant, passed_selection==3 ? 1 : 2, 24);
                 const double leptonIDWeightDownElec = reweighter[ "electronID" ]->weightDown( event ) / reweighter[ "electronID" ]->weight( event );
-                histograms.Fill(weight*leptonIDWeightDownElec, is_prompt ? 0 : 1, 0, 25);
-                histograms.Fill(weight*leptonIDWeightDownElec, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 25);
+                histograms.Fill(weight*leptonIDWeightDownElec, iVariant, 0, 25);
+                histograms.Fill(weight*leptonIDWeightDownElec, iVariant, passed_selection==3 ? 1 : 2, 25);
                 const double leptonIDWeightUpElec = reweighter[ "electronID" ]->weightUp( event ) / reweighter[ "electronID" ]->weight( event );
-                histograms.Fill(weight*leptonIDWeightUpElec, is_prompt ? 0 : 1, 0, 26);
-                histograms.Fill(weight*leptonIDWeightUpElec, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 26);
+                histograms.Fill(weight*leptonIDWeightUpElec, iVariant, 0, 26);
+                histograms.Fill(weight*leptonIDWeightUpElec, iVariant, passed_selection==3 ? 1 : 2, 26);
 
             }
 
@@ -224,8 +226,8 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
                 auto recVars = ttZ::performKinematicReconstruction(event, "JECDown", fitter);
 
                 histograms.SetValues(lepVars, jetVars, recVars);
-                histograms.Fill(weight, is_prompt ? 0 : 1, 0, 1);
-                histograms.Fill(weight, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 1);
+                histograms.Fill(weight, iVariant, 0, 1);
+                histograms.Fill(weight, iVariant, passed_selection==3 ? 1 : 2, 1);
 
             }
 
@@ -238,8 +240,8 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
                 auto recVars = ttZ::performKinematicReconstruction(event, "JECUp", fitter);
 
                 histograms.SetValues(lepVars, jetVars, recVars);
-                histograms.Fill(weight, is_prompt ? 0 : 1, 0, 2);
-                histograms.Fill(weight, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 2);
+                histograms.Fill(weight, iVariant, 0, 2);
+                histograms.Fill(weight, iVariant, passed_selection==3 ? 1 : 2, 2);
 
             }
 
@@ -252,8 +254,8 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
                 auto recVars = ttZ::performKinematicReconstruction(event, "JERDown", fitter);
 
                 histograms.SetValues(lepVars, jetVars, recVars);
-                histograms.Fill(weight, is_prompt ? 0 : 1, 0, 3);
-                histograms.Fill(weight, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 3);
+                histograms.Fill(weight, iVariant, 0, 3);
+                histograms.Fill(weight, iVariant, passed_selection==3 ? 1 : 2, 3);
 
             }
 
@@ -266,8 +268,8 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
                 auto recVars = ttZ::performKinematicReconstruction(event, "JERUp", fitter);
 
                 histograms.SetValues(lepVars, jetVars, recVars);
-                histograms.Fill(weight, is_prompt ? 0 : 1, 0, 4);
-                histograms.Fill(weight, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 4);
+                histograms.Fill(weight, iVariant, 0, 4);
+                histograms.Fill(weight, iVariant, passed_selection==3 ? 1 : 2, 4);
 
             }
 
@@ -280,8 +282,8 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
                 auto recVars = ttZ::performKinematicReconstruction(event, "UnclDown", fitter);
 
                 histograms.SetValues(lepVars, jetVars, recVars);
-                histograms.Fill(weight, is_prompt ? 0 : 1, 0, 5);
-                histograms.Fill(weight, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 5);
+                histograms.Fill(weight, iVariant, 0, 5);
+                histograms.Fill(weight, iVariant, passed_selection==3 ? 1 : 2, 5);
 
             }
 
@@ -294,8 +296,8 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
                 auto recVars = ttZ::performKinematicReconstruction(event, "UnclUp", fitter);
 
                 histograms.SetValues(lepVars, jetVars, recVars);
-                histograms.Fill(weight, is_prompt ? 0 : 1, 0, 6);
-                histograms.Fill(weight, is_prompt ? 0 : 1, passed_selection==3 ? 1 : 2, 6);
+                histograms.Fill(weight, iVariant, 0, 6);
+                histograms.Fill(weight, iVariant, passed_selection==3 ? 1 : 2, 6);
 
             }
 
@@ -308,7 +310,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
     systemTools::makeDirectory( directoryName );
     const std::string fileName = procName + "_" + year + ".root";
     TFile *file = TFile::Open( (directoryName+fileName).c_str(), "RECREATE");
-    histograms.Write();
+    histograms.Write(file);
     file->Close();
     std::cout << "Done writing output" << std::endl;
 
@@ -346,7 +348,7 @@ int main( int argc, char* argv[] ){
     }
     std::string year = argvStr[1];
     std::string procName = argvStr[2];
-    std::string subfolder = argc>=3 ? argvStr[3]+"/" : "";
+    std::string subfolder = argc>=4 ? argvStr[3]+"/" : "";
 
     if ( std::find(std::begin(years),     std::end(years),     year)     == std::end(years) ||
          std::find(std::begin(processes), std::end(processes), procName) == std::end(processes)
@@ -355,13 +357,20 @@ int main( int argc, char* argv[] ){
         std::cerr << "provided arguments: " << year << " " << procName << std::endl;
         std::cerr << "allowed arguments:" << std::endl;
         std::cerr << "year: 2016, 2017, 2018" << std::endl;
-        std::cerr << "process to analyze:"
+        std::cerr << "process to analyze:";
         for(auto const& process: processes) std::cerr << " " << process;
         std::cerr << std::endl;
         return 1;
     }
 
-    analyze( year, sampleDirectoryPath, procName, subfolder );
+    try {
+        analyze( year, sampleDirectoryPath, procName, subfolder );
+        return 0;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl
+                  << "analyze(" << year << ", " << sampleDirectoryPath << ", " << procName << ", " << subfolder << ")"
+                  << " ended with error" << std::endl;
+        return 1;
+    }
 
-    return 0;
 }
