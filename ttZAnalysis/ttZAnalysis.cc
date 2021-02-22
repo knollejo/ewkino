@@ -323,7 +323,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
 
 int main( int argc, char* argv[] ){
-    const std::string sampleDirectoryPath = "/user/mniedzie/Work/ntuples_ttz_new/";
+    const std::string sampleDirectoryPath = "/pnfs/iihe/cms/store/user/mniedzie/ntuples_ttz_new2/";
     std::vector< std::string > argvStr( &argv[0], &argv[0] + argc );
 
     // create lists of allowed argument values. std::set would allow for faster search,

@@ -107,7 +107,7 @@ def check(dirname):
         if os.path.exists('{}/{}_{}.root'.format(dirname, process, year)):
             continue
         newid = submit(year, process, dirname.split('/')[-1])
-        newids[jobname] = newid
+        newids.update(newid)
     finalize_submit(timestamp, newids)
 
 if __name__ == '__main__':
