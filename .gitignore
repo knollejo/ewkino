@@ -4,7 +4,7 @@ weights/weightFiles/leptonSF/EGM2D_*.root
 weights/weightFiles/pileupWeights/*.root
 ttZAnalysis/frMaps/
 ttZAnalysis/plots/
-ttZAnalysis/shapeFile_ttZ_2016.root
+ttZAnalysis/controlPlots
 ttZAnalysis/ttZAnalysis
 rsync-*
 submit.sh*
