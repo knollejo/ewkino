@@ -9,7 +9,7 @@
 // histogram definitions
 const int NBINS_category = 4; const double MIN_category = -0.5; const double MAX_category = 3.5;
 const int NBINS_nJets = 5; const double MIN_nJets = 2.5; const double MAX_nJets = 7.5;
-const int NBINS_nBjets = 3; const double MIN_nBjets = 0.5; const double MAX_nBjets = 7.5;
+const int NBINS_nBjets = 3; const double MIN_nBjets = 0.5; const double MAX_nBjets = 3.5;
 const int NBINS_dilepPt = 10; const double MIN_dilepPt = 0.0; const double MAX_dilepPt = 500.0;
 const int NBINS_dilepEta = 12; const double MIN_dilepEta = -3.0; const double MAX_dilepEta = 3.0;
 const int NBINS_dilepPhi = 10; const double MIN_dilepPhi = -TMath::Pi(); const double MAX_dilepPhi = TMath::Pi();
