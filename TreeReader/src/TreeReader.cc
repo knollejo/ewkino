@@ -1,6 +1,6 @@
 #include "../interface/TreeReader.h"
 
-//include c++ library classes 
+//include c++ library classes
 #include <fstream>
 #include <iostream>
 #include <typeinfo>
@@ -21,7 +21,7 @@ TreeReader::TreeReader( const std::string& sampleListFile, const std::string& sa
 
 void TreeReader::readSamples( const std::string& list, const std::string& directory, std::vector<Sample>& sampleVector ){
 
-    //clean current sample list 
+    //clean current sample list
     sampleVector.clear();
 
     //read list of samples from file
@@ -46,7 +46,7 @@ void TreeReader::readSamples2016( const std::string& list, const std::string& di
 
     readSamples( list, directory, this->samples2016 );
 
-    //add the 2016 samples to the total sample list 
+    //add the 2016 samples to the total sample list
     this->samples.insert( samples.end(), samples2016.begin(), samples2016.end() );
 
     //check for errors
@@ -65,12 +65,12 @@ void TreeReader::readSamples2017( const std::string& list, const std::string& di
     //add the 2017 samples to the total sample list
     this->samples.insert( samples.end(), samples2017.begin(), samples2017.end() );
 
-    //check for errors 
+    //check for errors
     checkSampleEraConsistency();
 }
 
 
-std::pair< std::map< std::string, bool >, std::map< std::string, TBranch* > > buildBranchMap( TTree* treePtr, const std::string& nameIdentifier, const std::string& antiIdentifier = "" ){   
+std::pair< std::map< std::string, bool >, std::map< std::string, TBranch* > > buildBranchMap( TTree* treePtr, const std::string& nameIdentifier, const std::string& antiIdentifier = "" ){
     std::map< std::string, bool > decisionMap;
     std::map< std::string, TBranch* > branchMap;
     TObjArray* branch_list = treePtr->GetListOfBranches();
@@ -204,10 +204,10 @@ long unsigned TreeReader::numberOfEntries() const{
 }
 
 
-void TreeReader::initSample( const Sample& samp ){ 
+void TreeReader::initSample( const Sample& samp ){
 
     //update current sample
-    //I wonder if the extra copy can be avoided here, its however hard if we want to keep the functionality of reading the sample vector, and also having the function initSampleFromFile. It's not clear how we can make a new sample in one of them and refer to an existing one in the other. It can be done with a static Sample in 'initSampleFromFile', but this makes the entire TreeReader class unthreadsafe, so no parallel sample processing in one process can be done 
+    //I wonder if the extra copy can be avoided here, its however hard if we want to keep the functionality of reading the sample vector, and also having the function initSampleFromFile. It's not clear how we can make a new sample in one of them and refer to an existing one in the other. It can be done with a static Sample in 'initSampleFromFile', but this makes the entire TreeReader class unthreadsafe, so no parallel sample processing in one process can be done
     _currentSamplePtr = std::make_shared< Sample >( samp );
     _currentFilePtr = samp.filePtr();
 
@@ -221,11 +221,11 @@ void TreeReader::initSample( const Sample& samp ){
         //read sum of simulated event weights
         TH1D* hCounter = new TH1D( "hCounter", "Events counter", 1, 0, 1 );
         _currentFilePtr->cd( "blackJackAndHookers" );
-        hCounter->Read( "hCounter" ); 
+        hCounter->Read( "hCounter" );
         double sumSimulatedEventWeights = hCounter->GetBinContent(1);
         delete hCounter;
 
-        //event weights set with lumi depending on sample's era 
+        //event weights set with lumi depending on sample's era
         double dataLumi;
         if( is2016() ){
             dataLumi = lumi::lumi2016;
@@ -251,7 +251,7 @@ void TreeReader::initSample(){
 //initialize the current Sample directly from a root file, this is used when skimming
 void TreeReader::initSampleFromFile( const std::string& pathToFile, const bool is2017, const bool is2018, const bool resetTriggersAndFilters ){
 
-    //check if file exists 
+    //check if file exists
     if( !systemTools::fileExists( pathToFile ) ){
         throw std::invalid_argument( "File '" + pathToFile + "' does not exist." );
     }
@@ -275,11 +275,11 @@ void TreeReader::initSampleFromFile( const std::string& pathToFile, const bool i
 }
 
 
-//automatically determine whether sample is 2017 or 2018 from file name 
+//automatically determine whether sample is 2017 or 2018 from file name
 void TreeReader::initSampleFromFile( const std::string& pathToFile, const bool resetTriggersAndFilters ){
-    
+
     std::pair< bool, bool > is2017Or2018 = analysisTools::fileIs2017Or2018( pathToFile );
-    
+
     initSampleFromFile( pathToFile, is2017Or2018.first, is2017Or2018.second, resetTriggersAndFilters );
 }
 
@@ -327,7 +327,7 @@ template< typename T > void setMapBranchAddresses( TTree* treePtr, std::map< std
 void setMapOutputBranches( TTree* treePtr, std::map< std::string, bool >& variableMap ){
     for( const auto& variable : variableMap ){
         treePtr->Branch( variable.first.c_str(), &variableMap[ variable.first ], ( variable.first + "/O" ).c_str() );
-    }    
+    }
 }
 
 
@@ -341,7 +341,7 @@ void TreeReader::initTree( const bool resetTriggersAndFilters ){
     _currentTreePtr->SetBranchAddress("_runNb", &_runNb, &b__runNb);
     _currentTreePtr->SetBranchAddress("_lumiBlock", &_lumiBlock, &b__lumiBlock);
     _currentTreePtr->SetBranchAddress("_eventNb", &_eventNb, &b__eventNb);
-    _currentTreePtr->SetBranchAddress("_nVertex", &_nVertex, &b__nVertex);    
+    _currentTreePtr->SetBranchAddress("_nVertex", &_nVertex, &b__nVertex);
     _currentTreePtr->SetBranchAddress("_passTrigger_e", &_passTrigger_e, &b__passTrigger_e);
     _currentTreePtr->SetBranchAddress("_passTrigger_ee", &_passTrigger_ee, &b__passTrigger_ee);
     _currentTreePtr->SetBranchAddress("_passTrigger_eee", &_passTrigger_eee, &b__passTrigger_eee);
@@ -476,17 +476,25 @@ void TreeReader::initTree( const bool resetTriggersAndFilters ){
     _currentTreePtr->SetBranchAddress("_jetHFHadronFraction", _jetHFHadronFraction, &b__jetHFHadronFraction);
     _currentTreePtr->SetBranchAddress("_jetHFEmFraction", _jetHFEmFraction, &b__jetHFEmFraction);
     _currentTreePtr->SetBranchAddress("_met", &_met, &b__met);
-    _currentTreePtr->SetBranchAddress("_met_JECDown", &_metJECDown, &b__metJECDown);
-    _currentTreePtr->SetBranchAddress("_met_JECUp", &_metJECUp, &b__metJECUp);
-    _currentTreePtr->SetBranchAddress("_met_UnclDown", &_metUnclDown, &b__metUnclDown);
-    _currentTreePtr->SetBranchAddress("_met_UnclUp", &_metUnclUp, &b__metUnclUp);
+    if(_currentTreePtr->SetBranchAddress("_met_JECDown", &_metJECDown, &b__metJECDown)<0)
+        _currentTreePtr->SetBranchAddress("_metJECDown", &_metJECDown, &b__metJECDown);
+    if(_currentTreePtr->SetBranchAddress("_met_JECUp", &_metJECUp, &b__metJECUp)<0)
+        _currentTreePtr->SetBranchAddress("_metJECUp", &_metJECUp, &b__metJECUp);
+    if(_currentTreePtr->SetBranchAddress("_met_UnclDown", &_metUnclDown, &b__metUnclDown)<0)
+        _currentTreePtr->SetBranchAddress("_metUnclDown", &_metUnclDown, &b__metUnclDown);
+    if(_currentTreePtr->SetBranchAddress("_met_UnclUp", &_metUnclUp, &b__metUnclUp)<0)
+        _currentTreePtr->SetBranchAddress("_metUnclUp", &_metUnclUp, &b__metUnclUp);
     _currentTreePtr->SetBranchAddress("_metPhi", &_metPhi, &b__metPhi);
-    _currentTreePtr->SetBranchAddress("_metPhi_JECDown", &_metPhiJECDown, &b__metPhiJECDown);
-    _currentTreePtr->SetBranchAddress("_metPhi_JECUp", &_metPhiJECUp, &b__metPhiJECUp);
-    _currentTreePtr->SetBranchAddress("_metPhi_UnclDown", &_metPhiUnclDown, &b__metPhiUnclDown);
-    _currentTreePtr->SetBranchAddress("_metPhi_UnclUp", &_metPhiUnclUp, &b__metPhiUnclUp);
+    if(_currentTreePtr->SetBranchAddress("_metPhi_JECDown", &_metPhiJECDown, &b__metPhiJECDown)<0)
+        _currentTreePtr->SetBranchAddress("_metPhiJECDown", &_metPhiJECDown, &b__metPhiJECDown);
+    if(_currentTreePtr->SetBranchAddress("_metPhi_JECUp", &_metPhiJECUp, &b__metPhiJECUp)<0)
+        _currentTreePtr->SetBranchAddress("_metPhiJECUp", &_metPhiJECUp, &b__metPhiJECUp);
+    if(_currentTreePtr->SetBranchAddress("_metPhi_UnclDown", &_metPhiUnclDown, &b__metPhiUnclDown)<0)
+        _currentTreePtr->SetBranchAddress("_metPhiUnclDown", &_metPhiUnclDown, &b__metPhiUnclDown);
+    if(_currentTreePtr->SetBranchAddress("_metPhi_UnclUp", &_metPhiUnclUp, &b__metPhiUnclUp)<0)
+        _currentTreePtr->SetBranchAddress("_metPhiUnclUp", &_metPhiUnclUp, &b__metPhiUnclUp);
     _currentTreePtr->SetBranchAddress("_metSignificance", &_metSignificance, &b__metSignificance);
-    
+
     if( containsGeneratorInfo() ){
         _currentTreePtr->SetBranchAddress("_weight", &_weight, &b__weight);
         _currentTreePtr->SetBranchAddress("_nLheWeights", &_nLheWeights, &b__nLheWeights);
@@ -530,7 +538,7 @@ void TreeReader::initTree( const bool resetTriggersAndFilters ){
         _currentTreePtr->SetBranchAddress("_gen_motherIndex"                            , _gen_motherIndex                            , &b__gen_motherIndex);
         _currentTreePtr->SetBranchAddress("_gen_daughter_n"                             , _gen_daughter_n                             , &b__gen_daughter_n);
         _currentTreePtr->SetBranchAddress("_gen_daughterIndex"                          , _gen_daughterIndex                          , &b__gen_daughterIndex);
-    } 
+    }
 
     if( !is2018() && isMC() ){
         _currentTreePtr->SetBranchAddress("_prefireWeight", &_prefireWeight, &b__prefireWeight);
@@ -543,7 +551,7 @@ void TreeReader::initTree( const bool resetTriggersAndFilters ){
 		_currentTreePtr->SetBranchAddress("_mChi2", &_mChi2, &b__mChi2);
 	}
 
-    //add all individually stored triggers 
+    //add all individually stored triggers
     //always reset triggers instead of rare case of combining primary datasets to prevent invalidating addresses set by setOutputTree
     if( resetTriggersAndFilters || _triggerMap.empty() ){
         initializeTriggerMap( _currentTreePtr );
@@ -656,7 +664,7 @@ void TreeReader::setOutputTree( TTree* outputTree ){
     outputTree->Branch("_tauEleVetoLoose",              &_tauEleVetoLoose,              "_tauEleVetoLoose[_nL]/O");
     outputTree->Branch("_tauEleVetoMedium",             &_tauEleVetoMedium,             "_tauEleVetoMedium[_nL]/O");
     outputTree->Branch("_tauEleVetoTight",              &_tauEleVetoTight,              "_tauEleVetoTight[_nL]/O");
-    outputTree->Branch("_tauEleVetoVTight",             &_tauEleVetoVTight,             "_tauEleVetoVTight[_nL]/O"); 
+    outputTree->Branch("_tauEleVetoVTight",             &_tauEleVetoVTight,             "_tauEleVetoVTight[_nL]/O");
 
     outputTree->Branch("_relIso",                       &_relIso,                       "_relIso[_nLight]/D");
     outputTree->Branch("_relIso0p4",                    &_relIso0p4,                    "_relIso0p4[_nLight]/D");
@@ -754,12 +762,12 @@ void TreeReader::setOutputTree( TTree* outputTree ){
         outputTree->Branch("_gen_motherIndex"                            , &_gen_motherIndex                            ,"_gen_motherIndex[_gen_n]/I"); // Int_t           _gen_motherIndex[gen_nL_
         outputTree->Branch("_gen_daughter_n"                             , &_gen_daughter_n                             ,"_gen_daughter_n[_gen_n]/I"); // Int_t           _gen_daughter_n[gen_nL_m
         outputTree->Branch("_gen_daughterIndex"                          , &_gen_daughterIndex                          ,"_gen_daughterIndex[_gen_n][10]/I"); // Int_t           _gen_daughterIndex[5000]
-    } 
+    }
 
     if( !is2018() && isMC() ){
        	outputTree->Branch("_prefireWeight",             &_prefireWeight,             "_prefireWeight/F");
         outputTree->Branch("_prefireWeightUp",           &_prefireWeightUp,           "_prefireWeightUp/F");
-        outputTree->Branch("_prefireWeightDown",         &_prefireWeightDown,         "_prefireWeightDown/F"); 
+        outputTree->Branch("_prefireWeightDown",         &_prefireWeightDown,         "_prefireWeightDown/F");
     }
 
     if( containsSusyMassInfo() ){
@@ -767,7 +775,7 @@ void TreeReader::setOutputTree( TTree* outputTree ){
 		outputTree->Branch("_mChi2", &_mChi2, "_mChi2/D");
     }
 
-    //write individual trigger decisions to output tree 
+    //write individual trigger decisions to output tree
     setMapOutputBranches( outputTree, _triggerMap );
 
     //write individual MET filters to output tree
@@ -775,7 +783,7 @@ void TreeReader::setOutputTree( TTree* outputTree ){
 }
 
 
-//get object from current file 
+//get object from current file
 TObject* TreeReader::getFromCurrentFile( const std::string& name ) const{
 	checkCurrentFile();
 	return _currentFilePtr->Get( name.c_str() );
