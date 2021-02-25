@@ -411,11 +411,13 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
         const std::string sYear = (iYear==0) ? "2016" : (iYear==1) ? "2017" : (iYear==2) ? "2018" : "run2";
         const std::string sLumi = (iYear==0) ? "35.9" : (iYear==1) ? "41.5" : (iYear==2) ? "59.7" : "137";
         for(int iSel=0; iSel<nSelections; iSel++) {
-            const std::string sTitle = (iSel==0) ? "≥3 jets" : (iSel==1) ? "≥4 jets" : "=3 jets";
+            const std::string sLep = "=3ℓ";
+            const std::string sJet = (iSel==0) ? "≥3j" : (iSel==1) ? "=3j" : "≥4j";
+            const std::string sTitle = sLep+", "+sJet+", ≥1b";
             const std::string sSelection = "sel"+std::to_string(iSel);
             const std::string data = plot.Print(iYear, iSel);
             const std::string filename = "plot_"+sYear+"_"+sSelection+"_"+obsname;
-            const std::string fullpath = outputdir+"/"+filename+".txt";
+            const std::string fullpath = outputdir+"/"+filename+".plot";
             std::cout << "Writing " << fullpath << std::endl;
             std::ofstream out(fullpath);
             out << data << std::endl

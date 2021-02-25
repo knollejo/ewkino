@@ -10,11 +10,11 @@ public:
 
     void Evaluate();
     std::string Print(int, int);
-    void Dump(int, int);
 
     static const int nYears = 3;
+    static const int nUncertainties = 7;
     double**** groups;
-    double**** uncSq;
+    double**** uncSqUp, **** uncSqDown;
 };
 
 #endif
