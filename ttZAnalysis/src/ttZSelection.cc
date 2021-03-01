@@ -105,22 +105,40 @@ Met ttZ::variedMet( const Event& event, const std::string& uncertainty ){
 
 
 bool ttZ::passSelectionLNumber( Event& event ){
-    if ( event.numberOfFOLeptons() == 3 ) return true;
+    if ( event.numberOfFOLeptons() == 3 || event.numberOfFOLeptons() == 4 ) return true;
     return false;
 }
 
 
 int ttZ::passSelectionTTZ( Event& event, const std::string& uncertainty ){
+// -1: failed selection
+// 0: passed 4l selection
+// 1: passed 3l selection with 3 jets
+// 2: passed 3l selection with 4 or more jets
 
-    if ( !( event.hasOSSFLightLeptonPair() ) ) return 0;
+    if ( numberOfVariedJets( event, uncertainty ) < 2 ) return -1;
+    if ( numberOfVariedBJets( event, uncertainty ) < 1 ) return -1;
+    if ( !( event.hasOSSFLightLeptonPair() ) ) return -1;
+    if ( event.numberOfFOLeptons() < 3 ) return -1;
     if ( event.numberOfFOLeptons() == 3 ){
-        if ( numberOfVariedJets( event, uncertainty ) < 3 ) return 0;
-        if ( numberOfVariedBJets( event, uncertainty ) < 1 ) return 0;
-        if ( std::abs( event.bestZBosonCandidateMass() - particle::mZ ) >= 10 ) return 0;
-    }
-    else return 0;
-    if ( numberOfVariedJets( event, uncertainty ) == 3 ) return 3;
-    else return 4;
+        if ( std::abs( event.bestZBosonCandidateMass() - particle::mZ ) >= 10 ) return -1;
+        if ( numberOfVariedJets( event, uncertainty ) < 3 ) return -1;
+        else if ( numberOfVariedJets( event, uncertainty ) == 3 ) return 1;
+        else return 2;
+    } else if ( event.numberOfFOLeptons() == 4 ) {
+        if ( std::abs( event.bestZBosonCandidateMass() - particle::mZ ) >= 20 ) return -1;
+        std::vector< LeptonCollection::size_type > ind2Zcand;
+        for( LeptonCollection::size_type l = 0; l < event.numberOfLeptons(); ++l ) {
+            if( ( l == event.bestZBosonCandidateIndices().first ) || ( l == event.bestZBosonCandidateIndices().second ) ) continue;
+            ind2Zcand.push_back(l);
+        }
+        auto firstOtherLepton = &event.leptonCollection()[ind2Zcand.at(0)];
+        auto secondOtherLepton = &event.leptonCollection()[ind2Zcand.at(1)];
+        if( oppositeSignSameFlavor(*firstOtherLepton, *secondOtherLepton) ) {
+            if ( std::abs( ( *firstOtherLepton + *secondOtherLepton ).mass() - particle::mZ ) < 20 ) return -1;
+        }
+        return 0;
+    } else return -1;
 }
 
 

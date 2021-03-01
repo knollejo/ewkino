@@ -1,5 +1,9 @@
 data       data_combined_Fall17.root
-ttZ        TTZToLLNuNu_M-10_TuneCP5_PSweights_13TeV-amcatnlo-pythia8_Fall17.root               1.0
+ttZ1       TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8_Fall17_part1.root                   1.0
+ttZ2       TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8_Fall17_part2.root                   1.0
+ttZ3       TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8_Fall17_part3.root                   1.0
+ttZ4       TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8_Fall17_part4.root                   1.0
+ttZ5       TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8_Fall17_part5.root                   1.0
 ttH        ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8_Fall17.root                            1.0
 tZq        tZq_ll_4f_ckm_NLO_TuneCP5_PSweights_13TeV-amcatnlo-pythia8_Fall17.root              1.0
 tWZ        ST_tWll_5f_LO_TuneCP5_PSweights_13TeV-madgraph-pythia8_Fall17.root                  1.0

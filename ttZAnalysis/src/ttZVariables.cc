@@ -13,17 +13,20 @@
 #include "../interface/ttZSelection.h"
 
 ttZ::leptonVariables ttZ::computeLeptonVariables(Event& event) {
-    const int category = event.numberOfElectrons();
+    const bool isThreeLeptons = event.numberOfLeptons()==3;
+    const bool isMuMuCandidate = event.leptonCollection()[event.bestZBosonCandidateIndices().first].isMuon();
+    const int nElectrons = event.numberOfElectrons();
+    const int category = isThreeLeptons ? nElectrons : nElectrons+(isMuMuCandidate ? 0 : 1);
 
-    const double leadLepPt = event.leptonCollection()[0].pt();
-    const double leadLepEta = event.leptonCollection()[0].eta();
-    const double leadLepPhi = event.leptonCollection()[0].phi();
-    const double sublLepPt = event.leptonCollection()[1].pt();
-    const double sublLepEta = event.leptonCollection()[1].eta();
-    const double sublLepPhi = event.leptonCollection()[1].phi();
-    const double trailLepPt = event.leptonCollection()[2].pt();
-    const double trailLepEta = event.leptonCollection()[2].eta();
-    const double trailLepPhi = event.leptonCollection()[2].phi();
+    const double firstLepPt = event.leptonCollection()[0].pt();
+    const double firstLepEta = event.leptonCollection()[0].eta();
+    const double firstLepPhi = event.leptonCollection()[0].phi();
+    const double secondLepPt = event.leptonCollection()[1].pt();
+    const double secondLepEta = event.leptonCollection()[1].eta();
+    const double secondLepPhi = event.leptonCollection()[1].phi();
+    const double thirdLepPt = event.leptonCollection()[2].pt();
+    const double thirdLepEta = event.leptonCollection()[2].eta();
+    const double thirdLepPhi = event.leptonCollection()[2].phi();
 
     Lepton& lep1 = event.leptonCollection()[event.bestZBosonCandidateIndices().first];
     Lepton& lep2 = event.leptonCollection()[event.bestZBosonCandidateIndices().second];
@@ -33,13 +36,29 @@ ttZ::leptonVariables ttZ::computeLeptonVariables(Event& event) {
     const double dilepPhi = dilep.phi();
     const double dilepMass = dilep.mass();
 
-    return leptonVariables(
-        category,
-        leadLepPt, leadLepEta, leadLepPhi,
-        sublLepPt, sublLepEta, sublLepPhi,
-        trailLepPt, trailLepEta, trailLepPhi,
-        dilepPt, dilepEta, dilepPhi, dilepMass
-    );
+    if(isThreeLeptons) {
+        return leptonVariables(
+            category,
+            firstLepPt, firstLepEta, firstLepPhi,
+            secondLepPt, secondLepEta, secondLepPhi,
+            thirdLepPt, thirdLepEta, thirdLepPhi,
+            dilepPt, dilepEta, dilepPhi, dilepMass
+        );
+    } else {
+        const double fourthLepPt = event.leptonCollection()[2].pt();
+        const double fourthLepEta = event.leptonCollection()[2].eta();
+        const double fourthLepPhi = event.leptonCollection()[2].phi();
+
+        return leptonVariables(
+            category,
+            firstLepPt, firstLepEta, firstLepPhi,
+            secondLepPt, secondLepEta, secondLepPhi,
+            thirdLepPt, thirdLepEta, thirdLepPhi,
+            fourthLepPt, fourthLepEta, fourthLepPhi,
+            dilepPt, dilepEta, dilepPhi, dilepMass
+        );
+    }
+
 }
 
 ttZ::jetVariables ttZ::computeJetVariables(Event& event, const std::string& unc) {
@@ -52,25 +71,36 @@ ttZ::jetVariables ttZ::computeJetVariables(Event& event, const std::string& unc)
     const double missingEt = variedMet.pt();
     const double missingPhi = variedMet.phi();
 
-    const bool has_first_jet = variedJetCollection.size()>=1;
-    const double firstJetPt = has_first_jet ? variedJetCollection[0].pt() : -999.0;
-    const double firstJetEta = has_first_jet ? variedJetCollection[0].eta() : -999.0;
-    const double firstJetPhi = has_first_jet ? variedJetCollection[0].phi() : -999.0;
+    const double firstJetPt =  variedJetCollection[0].pt();
+    const double firstJetEta =  variedJetCollection[0].eta();
+    const double firstJetPhi =  variedJetCollection[0].phi();
 
-    const bool has_second_jet = variedJetCollection.size()>=2;
-    const double secondJetPt = has_second_jet ? variedJetCollection[1].pt() : -999.0;
-    const double secondJetEta = has_second_jet ? variedJetCollection[1].eta() : -999.0;
-    const double secondJetPhi = has_second_jet ? variedJetCollection[1].phi() : -999.0;
+    const double secondJetPt = variedJetCollection[1].pt();
+    const double secondJetEta = variedJetCollection[1].eta();
+    const double secondJetPhi = variedJetCollection[1].phi();
 
-    const bool has_third_jet = variedJetCollection.size()>=3;
-    const double thirdJetPt = has_third_jet ? variedJetCollection[2].pt() : -999.0;
-    const double thirdJetEta = has_third_jet ? variedJetCollection[2].eta() : -999.0;
-    const double thirdJetPhi = has_third_jet ? variedJetCollection[2].phi() : -999.0;
+    if(nJets<=2) return jetVariables(
+        nJets, nBjets,
+        missingEt, missingPhi,
+        firstJetPt, firstJetEta, firstJetPhi,
+        secondJetPt, secondJetEta, secondJetPhi
+    );
 
-    const bool has_fourth_jet = variedJetCollection.size()>=4;
-    const double fourthJetPt = has_fourth_jet ? variedJetCollection[3].pt() : -999.0;
-    const double fourthJetEta = has_fourth_jet ? variedJetCollection[3].eta() : -999.0;
-    const double fourthJetPhi = has_fourth_jet ? variedJetCollection[3].phi() : -999.0;
+    const double thirdJetPt = variedJetCollection[2].pt();
+    const double thirdJetEta = variedJetCollection[2].eta();
+    const double thirdJetPhi = variedJetCollection[2].phi();
+
+    if(nJets<=3) return jetVariables(
+        nJets, nBjets,
+        missingEt, missingPhi,
+        firstJetPt, firstJetEta, firstJetPhi,
+        secondJetPt, secondJetEta, secondJetPhi,
+        thirdJetPt, thirdJetEta, thirdJetPhi
+    );
+
+    const double fourthJetPt = variedJetCollection[3].pt();
+    const double fourthJetEta = variedJetCollection[3].eta();
+    const double fourthJetPhi = variedJetCollection[3].phi();
 
     return jetVariables(
         nJets, nBjets,
@@ -99,6 +129,9 @@ double deltaRap(double rap1, double rap2) {
 }
 
 ttZ::reconstructedVariables ttZ::performKinematicReconstruction(Event& event, const std::string& unc, KinFitter* fitter) {
+    // no reconstruction for four-lepton events
+    if(event.numberOfFOLeptons()!=3) return reconstructedVariables();
+
     // prepare third lepton
     Lepton& thirdLep = event.WLepton();
     TLorentzVector lvLepton;
@@ -258,9 +291,56 @@ ttZ::reconstructedVariables ttZ::performKinematicReconstruction(Event& event, co
     const double deltaPhiTopZ = deltaPhi(top.Phi(), zboson.Phi());
     const double deltaRapTtbar = deltaRap(top.Rapidity(), antitop.Rapidity());
     const double deltaRapTopZ = deltaRap(top.Rapidity(), zboson.Rapidity());
+    const double lepTopMass = leptop.M();
+    const double hadTopMass = hadtop.M();
 
     return reconstructedVariables(
         ttzMass, ttbarMass, topPt,
-        deltaPhiTtbar, deltaPhiTopZ, deltaRapTtbar, deltaRapTopZ
+        deltaPhiTtbar, deltaPhiTopZ, deltaRapTtbar, deltaRapTopZ,
+        lepTopMass, hadTopMass
+    );
+}
+
+ttZ::fourLeptonVariables ttZ::performFourLeptonsComputation(Event& event) {
+    // no computation for three-lepton events
+    if(event.numberOfFOLeptons()!=4) return fourLeptonVariables();
+
+    // prepare other leptons
+    std::vector<unsigned int> iOtherLeps;
+    for(unsigned int iLep=0; iLep<event.numberOfLeptons(); iLep++) {
+        if(iLep==event.bestZBosonCandidateIndices().first) continue;
+        if(iLep==event.bestZBosonCandidateIndices().second) continue;
+        iOtherLeps.push_back(iLep);
+    }
+    const bool firstOtherLepPos = event.leptonCollection()[iOtherLeps.at(0)].charge()>0.0;
+    Lepton& thetoplep = event.leptonCollection()[iOtherLeps.at(firstOtherLepPos ? 0 : 1)];
+    Lepton& theantitoplep = event.leptonCollection()[iOtherLeps.at(firstOtherLepPos ? 1 : 0)];
+    TLorentzVector toplep, antitoplep;
+    toplep.SetPtEtaPhiM(thetoplep.pt(), thetoplep.eta(), thetoplep.phi(), thetoplep.mass());
+    antitoplep.SetPtEtaPhiM(theantitoplep.pt(), theantitoplep.eta(), theantitoplep.phi(), theantitoplep.mass());
+
+    // reconstruct Z boson
+    Lepton& lep1 = event.leptonCollection()[event.bestZBosonCandidateIndices().first];
+    Lepton& lep2 = event.leptonCollection()[event.bestZBosonCandidateIndices().second];
+    auto dilep = lep1+lep2;
+    TLorentzVector zboson;
+    zboson.SetPtEtaPhiM(dilep.pt(), dilep.eta(), dilep.phi(), dilep.mass());
+
+    // compute four-vectors
+    TLorentzVector ttbarleps = toplep+antitoplep;
+    TLorentzVector fourleptons = ttbarleps+zboson;
+
+    // calculate observables
+    const double fourLeptonsMass = fourleptons.M();
+    const double topLeptonsMass = ttbarleps.M();
+    const double topLeptonPt = toplep.Pt();
+    const double deltaPhiTopLeptons = deltaPhi(toplep.Phi(), antitoplep.Phi());
+    const double deltaPhiTopLeptonZ = deltaPhi(toplep.Phi(), zboson.Phi());
+    const double deltaRapTopLeptons = deltaRap(toplep.Rapidity(), antitoplep.Rapidity());
+    const double deltaRapTopLeptonZ = deltaRap(toplep.Rapidity(), zboson.Rapidity());
+
+    return fourLeptonVariables(
+        topLeptonPt, topLeptonsMass, fourLeptonsMass,
+        deltaPhiTopLeptons, deltaPhiTopLeptonZ, deltaRapTopLeptons, deltaRapTopLeptonZ
     );
 }
