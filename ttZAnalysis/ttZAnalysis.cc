@@ -15,6 +15,7 @@
 //include ttZ specific code
 #include "interface/ttZHistograms.h"
 #include "interface/ttZSelection.h"
+#include "interface/ttZTruth.h"
 #include "interface/ttZVariables.h"
 
 #include <functional>
@@ -24,7 +25,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
     //check setup
     analysisTools::checkYearString( year );
-    const bool is_ttZ = false;//(procName == "ttZ");
+    const bool is_ttZ = (procName=="ttZ1" || procName=="ttZ2" || procName=="ttZ3" || procName=="ttZ4" || procName=="ttZ5");
     const bool is_data = (procName == "data");
     const bool is_2016 = (year=="2016");
     const bool is_2017 = (year=="2017");
@@ -55,7 +56,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
     //initialize histograms
     std::cout << "building histograms" << std::endl;
-    const int nVariants = is_ttZ ? 6 : is_data ? 2 : 3;
+    const int nVariants = is_ttZ ? 18 : is_data ? 2 : 3;
     const int nSelections = 3;
     const int nPdfVariations = 100;
     const int nSystematics = is_data ? 1 : 1+28+nPdfVariations;
@@ -81,6 +82,19 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
                 }catch( std::out_of_range& ){
                     sampleHasPdfAndScale = false;
                 }
+            }
+
+            //for ttZ events: analyze gen-level information
+            auto truthInfo = is_ttZ ? ttZ::evaluateTruthStatus(treeReader) : ttZ::ttzTruth();
+            int iVariantShift = 0;
+            if(is_ttZ) {
+                if(!truthInfo.hasLeptonicZ) iVariantShift = 15; // tt+nunu
+                else if(!truthInfo.isOnShell) iVariantShift = 12; // tt+ll off-shell
+                else if(truthInfo.hasTaus) iVariantShift = 9; // ttZ with tau in the decay
+                else if(truthInfo.nLeptons==4) iVariantShift = 0; // ttZ with 4 leptons
+                else if(truthInfo.nLeptons==3) iVariantShift = 3; // ttZ with 3 leptons
+                else if(truthInfo.nLeptons==2) iVariantShift = 6; // ttZ with 2 leptons
+                else iVariantShift = 15;
             }
 
             //apply baseline selection
@@ -118,9 +132,10 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill nominal histograms
             const int iVariant = is_data ? (is_tight ? 0 : 1)
-                               : (is_prompt ? (is_tight ? 0 : 2) : 1);
+                               : (is_prompt ? (is_tight ? 0 : 2) : 1)
+                               + iVariantShift;
             int passed_selection = ttZ::passSelectionTTZ( event, "nominal" );
-            if( passed_selection<0 ){
+            if( passed_selection >= 0 ){
 
                 auto lepVars = ttZ::computeLeptonVariables(event);
                 auto jetVars = ttZ::computeJetVariables(event, "nominal");
@@ -198,7 +213,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill JEC down histograms
             passed_selection = ttZ::passSelectionTTZ( event, "JECDown" );
-            if( passed_selection ){
+            if( passed_selection >= 0 ){
 
                 auto lepVars = ttZ::computeLeptonVariables(event);
                 auto jetVars = ttZ::computeJetVariables(event, "JECDown");
@@ -212,7 +227,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill JEC up histograms
             passed_selection = ttZ::passSelectionTTZ( event, "JECUp" );
-            if( passed_selection ){
+            if( passed_selection >= 0 ){
 
                 auto lepVars = ttZ::computeLeptonVariables(event);
                 auto jetVars = ttZ::computeJetVariables(event, "JECUp");
@@ -226,7 +241,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill JER down histograms
             passed_selection = ttZ::passSelectionTTZ( event, "JERDown" );
-            if( passed_selection ){
+            if( passed_selection >= 0 ){
 
                 auto lepVars = ttZ::computeLeptonVariables(event);
                 auto jetVars = ttZ::computeJetVariables(event, "JERDown");
@@ -240,7 +255,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill JER up histograms
             passed_selection = ttZ::passSelectionTTZ( event, "JERUp" );
-            if( passed_selection ){
+            if( passed_selection >= 0 ){
 
                 auto lepVars = ttZ::computeLeptonVariables(event);
                 auto jetVars = ttZ::computeJetVariables(event, "JERUp");
@@ -254,7 +269,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill unclustered down histograms
             passed_selection = ttZ::passSelectionTTZ( event, "UnclDown" );
-            if( passed_selection ){
+            if( passed_selection >= 0 ){
 
                 auto lepVars = ttZ::computeLeptonVariables(event);
                 auto jetVars = ttZ::computeJetVariables(event, "UnclDown");
@@ -268,7 +283,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //fill unclustered up histograms
             passed_selection = ttZ::passSelectionTTZ( event, "UnclUp" );
-            if( passed_selection ){
+            if( passed_selection >= 0 ){
 
                 auto lepVars = ttZ::computeLeptonVariables(event);
                 auto jetVars = ttZ::computeJetVariables(event, "UnclUp");

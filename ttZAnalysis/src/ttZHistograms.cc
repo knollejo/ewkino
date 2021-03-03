@@ -118,7 +118,7 @@ ttZHistograms::ttZHistograms(int nVar, int nSel, int nSys) :
     for(int i=0; i<nHistograms; i++) {
         const std::string sI = std::to_string(i);
         hists_category3l[i] = new TH1F(("hist_category3l_var"+sI).c_str(), "", NBINS_category3l, MIN_category3l, MAX_category3l);
-        hists_category3l[i] = new TH1F(("hist_category3l_var"+sI).c_str(), "", NBINS_category3l, MIN_category3l, MAX_category3l);
+        hists_category4l[i] = new TH1F(("hist_category4l_var"+sI).c_str(), "", NBINS_category3l, MIN_category3l, MAX_category3l);
         hists_nJets[i] = new TH1F(("hist_nJets_var"+sI).c_str(), "", NBINS_nJets, MIN_nJets, MAX_nJets);
         hists_nBjets[i] = new TH1F(("hist_nBjets_var"+sI).c_str(), "", NBINS_nBjets, MIN_nBjets, MAX_nBjets);
         hists_dilepPt[i] = new TH1F(("hist_dilepPt_var"+sI).c_str(), "", NBINS_dilepPt, MIN_dilepPt, MAX_dilepPt);
