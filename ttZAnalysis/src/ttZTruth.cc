@@ -23,8 +23,8 @@ ttZ::ttzTruth ttZ::evaluateTruthStatus(TreeReader& reader) {
     // find gen-level top quarks
     std::vector<int> topquarks = geninfo.find_decaying_topquarks();
     const bool has_topquarks = (topquarks.size()==2);
-    GenParticleHelper::TopDecay topquark = has_topquarks ? geninfo.find_top_decay(topquarks.at(geninfo.pdgId(topquarks.at(0)>0 ? 0 : 1))) : GenParticleHelper::TopDecay();
-    GenParticleHelper::TopDecay topantiquark = has_topquarks ? geninfo.find_top_decay(topquarks.at(geninfo.pdgId(topquarks.at(0)>0 ? 1 : 0))) : GenParticleHelper::TopDecay();
+    GenParticleHelper::TopDecay topquark = has_topquarks ? geninfo.find_top_decay(topquarks.at(geninfo.pdgId(topquarks.at(0))>0 ? 0 : 1)) : GenParticleHelper::TopDecay();
+    GenParticleHelper::TopDecay topantiquark = has_topquarks ? geninfo.find_top_decay(topquarks.at(geninfo.pdgId(topquarks.at(0))>0 ? 1 : 0)) : GenParticleHelper::TopDecay();
     const bool topquarks_have_taus = has_topquarks ? geninfo.is_tau(topquark.w2) || geninfo.is_tau(topantiquark.w2) : false;
     const bool topquarks_are_dileptonic = has_topquarks ? geninfo.is_lepton(topquark.w2) && geninfo.is_lepton(topantiquark.w2) : false;
     const bool topquarks_are_semileptonic = has_topquarks ? geninfo.is_lepton(topquark.w2) != geninfo.is_lepton(topantiquark.w2) : false;

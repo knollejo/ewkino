@@ -31,10 +31,12 @@ def finalize_submit(timestamp, jobids):
     with open('output/{}/submit/jobids.json'.format(timestamp), 'w') as f:
         json.dump(jobids, f)
 
-def submit(year, process, timestamp=None):
+def submit(year, process, timestamp=None, timestamp_log=None):
     do_init = bool(timestamp is None)
     if do_init:
         timestamp = init_submit()
+    if timestamp_log is None:
+        timestamp_log = timestamp
     with open('output/{0}/submit/run_{0}_{1}_{2}.sh'.format(timestamp, year, process), 'w') as f:
         f.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
         f.write('cd {}\n'.format(os.path.abspath(os.getcwd())))
@@ -43,8 +45,8 @@ def submit(year, process, timestamp=None):
         f.write('echo "Job done!"\n')
     sub = 'qsub output/{0}/submit/run_{0}_{1}_{2}.sh -l walltime=24:00:00'.format(timestamp, year, process)
     nam = ' -N {}_{}'.format(year, process)
-    log = ' -o output/{0}/submit/log_{0}_{1}_{2}.txt'.format(timestamp, year, process)
-    err = ' -e output/{0}/submit/err_{0}_{1}_{2}.txt'.format(timestamp, year, process)
+    log = ' -o output/{0}/submit/log_{1}_{2}_{3}.txt'.format(timestamp, timestamp_log, year, process)
+    err = ' -e output/{0}/submit/err_{1}_{2}_{3}.txt'.format(timestamp, timestamp_log, year, process)
     command = sub+nam+log+err
     qsub_output = do_qsub(command)
     jobid = qsub_output.split('\n')[0]
@@ -61,7 +63,7 @@ def submit_year(year, timestamp=None):
         timestamp = init_submit()
     processes = (
         "data",
-        "ttZ",
+        "ttZ1", "ttZ2", "ttZ3", "ttZ4", "ttZ5",
         "ttH", "tZq", "tWZ", "ttW", "tHQ", "tHW", "ttZlight", "tttt", "ttWW", "ttWZ", "ttZZ",
         "WZ3L", "WZ2L",
         "DY", "tG", "ttG", "WG", "tt",
@@ -88,6 +90,7 @@ def submit_all():
 
 def check(dirname):
     timestamp = dirname.split('/')[-1]
+    timestamp_log = get_timestamp()
     with open('{}/submit/jobids.json'.format(dirname)) as f:
         jobids = json.load(f)
     user = get_user()
@@ -106,7 +109,7 @@ def check(dirname):
         year, process = jobname.split('_')
         if os.path.exists('{}/{}_{}.root'.format(dirname, process, year)):
             continue
-        newid = submit(year, process, dirname.split('/')[-1])
+        newid = submit(year, process, timestamp, timestamp_log)
         newids.update(newid)
     finalize_submit(timestamp, newids)
 
