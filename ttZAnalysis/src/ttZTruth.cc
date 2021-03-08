@@ -35,7 +35,7 @@ ttZ::ttzTruth ttZ::evaluateTruthStatus(TreeReader& reader) {
     const bool isOnShell = is_onshell_zboson;
     const bool hasLeptonicZ = zboson_decays_leptonic;
     const bool hasTaus = zboson_has_taus || topquarks_have_taus;
-    const bool nLeptons = (zboson_decays_leptonic ? 2 : 0)+(topquarks_are_dileptonic ? 2 : topquarks_are_semileptonic ? 1 : 0);
+    const int nLeptons = (zboson_decays_leptonic ? 2 : 0)+(topquarks_are_dileptonic ? 2 : topquarks_are_semileptonic ? 1 : 0);
     return ttzTruth(
         isOnShell, hasLeptonicZ, hasTaus, nLeptons,
         lvZ, lvTop, lvAntitop

@@ -15,7 +15,7 @@ namespace ttZ {
         ttzTruth(bool _isOnShell, bool _hasLeptonicZ, bool _hasTaus, int _nLeptons, TLorentzVector _lvZ, TLorentzVector _lvTop, TLorentzVector _lvAntitop) :
             isOnShell(_isOnShell), hasLeptonicZ(_hasLeptonicZ), hasTaus(_hasTaus), nLeptons(_nLeptons), lvZ(_lvZ), lvTop(_lvTop), lvAntitop(_lvAntitop)
             {}
-        ttzTruth() : isOnShell(false), hasLeptonicZ(false), hasTaus(false), nLeptons(false) {}
+        ttzTruth() : isOnShell(false), hasLeptonicZ(false), hasTaus(false), nLeptons(0) {}
     };
     ttzTruth evaluateTruthStatus(TreeReader& reader);
 

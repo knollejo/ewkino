@@ -19,10 +19,10 @@ const int NBINS_dilepMass3l = 10; const double MIN_dilepMass3l = particle::mZ-10
 const int NBINS_dilepMass4l = 10; const double MIN_dilepMass4l = particle::mZ-20.0; const double MAX_dilepMass4l = particle::mZ+20.0;
 const int NBINS_missingEt = 11; const double MIN_missingEt = 0.0; const double MAX_missingEt = 220.0;
 const int NBINS_missingPhi = 10; const double MIN_missingPhi = -TMath::Pi(); const double MAX_missingPhi = TMath::Pi();
-const int NBINS_firstLepPt = 10; const double MIN_firstLepPt = 40.0; const double MAX_firstLepPt = 330.0;
+const int NBINS_firstLepPt = 10; const double MIN_firstLepPt = 40.0; const double MAX_firstLepPt = 340.0;
 const int NBINS_firstLepEta = 10; const double MIN_firstLepEta = -2.5; const double MAX_firstLepEta = 2.5;
 const int NBINS_firstLepPhi = 10; const double MIN_firstLepPhi = -TMath::Pi(); const double MAX_firstLepPhi = -TMath::Pi();
-const int NBINS_secondLepPt = 10; const double MIN_secondLepPt = 20.0; const double MAX_secondLepPt = 165.0;
+const int NBINS_secondLepPt = 10; const double MIN_secondLepPt = 10.0; const double MAX_secondLepPt = 160.0;
 const int NBINS_secondLepEta = 10; const double MIN_secondLepEta = -2.5; const double MAX_secondLepEta = 2.5;
 const int NBINS_secondLepPhi = 10; const double MIN_secondLepPhi = -TMath::Pi(); const double MAX_secondLepPhi = -TMath::Pi();
 const int NBINS_thirdLepPt = 10; const double MIN_thirdLepPt = 10.0; const double MAX_thirdLepPt = 110.0;
@@ -34,13 +34,13 @@ const int NBINS_fourthLepPhi = 10; const double MIN_fourthLepPhi = -TMath::Pi();
 const int NBINS_firstJetPt = 10; const double MIN_firstJetPt = 30.0; const double MAX_firstJetPt = 330.0;
 const int NBINS_firstJetEta = 10; const double MIN_firstJetEta = -2.5; const double MAX_firstJetEta = 2.5;
 const int NBINS_firstJetPhi = 10; const double MIN_firstJetPhi = -TMath::Pi(); const double MAX_firstJetPhi = -TMath::Pi();
-const int NBINS_secondJetPt = 10; const double MIN_secondJetPt = 30.0; const double MAX_secondJetPt = 330.0;
+const int NBINS_secondJetPt = 10; const double MIN_secondJetPt = 30.0; const double MAX_secondJetPt = 180.0;
 const int NBINS_secondJetEta = 10; const double MIN_secondJetEta = -2.5; const double MAX_secondJetEta = 2.5;
 const int NBINS_secondJetPhi = 10; const double MIN_secondJetPhi = -TMath::Pi(); const double MAX_secondJetPhi = -TMath::Pi();
-const int NBINS_thirdJetPt = 10; const double MIN_thirdJetPt = 30.0; const double MAX_thirdJetPt = 330.0;
+const int NBINS_thirdJetPt = 10; const double MIN_thirdJetPt = 30.0; const double MAX_thirdJetPt = 130.0;
 const int NBINS_thirdJetEta = 10; const double MIN_thirdJetEta = -2.5; const double MAX_thirdJetEta = 2.5;
 const int NBINS_thirdJetPhi = 10; const double MIN_thirdJetPhi = -TMath::Pi(); const double MAX_thirdJetPhi = -TMath::Pi();
-const int NBINS_fourthJetPt = 10; const double MIN_fourthJetPt = 30.0; const double MAX_fourthJetPt = 330.0;
+const int NBINS_fourthJetPt = 10; const double MIN_fourthJetPt = 30.0; const double MAX_fourthJetPt = 130.0;
 const int NBINS_fourthJetEta = 10; const double MIN_fourthJetEta = -2.5; const double MAX_fourthJetEta = 2.5;
 const int NBINS_fourthJetPhi = 10; const double MIN_fourthJetPhi = -TMath::Pi(); const double MAX_fourthJetPhi = -TMath::Pi();
 const int NBINS_ttzMass = 8; const double BINS_ttzMass[NBINS_ttzMass+1] = { 436.0, 580.0, 640.0, 720.0, 800.0, 890.0, 1000.0, 1150.0, 1500.0 };
@@ -50,15 +50,15 @@ const int NBINS_deltaPhiTtbar = 8; const double BINS_deltaPhiTtbar[NBINS_deltaPh
 const int NBINS_deltaPhiTopZ = 8; const double BINS_deltaPhiTopZ[NBINS_deltaPhiTopZ+1] = { 0.0, TMath::Pi()/6, TMath::Pi()/3, TMath::Pi()/2, 2*TMath::Pi()/3, 3*TMath::Pi()/4, 5*TMath::Pi()/6, 11*TMath::Pi()/12, TMath::Pi() };
 const int NBINS_deltaRapTtbar = 8; const double BINS_deltaRapTtbar[NBINS_deltaRapTtbar+1] = { 0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.1, 3.0 };
 const int NBINS_deltaRapTopZ = 8; const double BINS_deltaRapTopZ[NBINS_deltaRapTopZ+1] = { 0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0 };
-const int NBINS_lepTopMass = 10; const double MIN_lepTopMass = 75.0; const double MAX_lepTopMass = 275.0;
-const int NBINS_hadTopMass = 10; const double MIN_hadTopMass = 75.0; const double MAX_hadTopMass = 275.0;
-const int NBINS_topLeptonPt = 8; const double MIN_topLeptonPt = 0.0; const double MAX_topLeptonPt = 500.0;
-const int NBINS_topLeptonsMass = 8; const double MIN_topLeptonsMass = 0.0; const double MAX_topLeptonsMass = 500.0;
-const int NBINS_fourLeptonsMass = 8; const double MIN_fourLeptonsMass = 0.0; const double MAX_fourLeptonsMass = 500.0;
+const int NBINS_lepTopMass = 10; const double MIN_lepTopMass = 150.0; const double MAX_lepTopMass = 200.0;
+const int NBINS_hadTopMass = 10; const double MIN_hadTopMass = 150.0; const double MAX_hadTopMass = 200.0;
+const int NBINS_topLeptonPt = 8; const double MIN_topLeptonPt = 0.0; const double MAX_topLeptonPt = 250.0;
+const int NBINS_topLeptonsMass = 8; const double MIN_topLeptonsMass = 0.0; const double MAX_topLeptonsMass = 350.0;
+const int NBINS_fourLeptonsMass = 8; const double MIN_fourLeptonsMass = 100.0; const double MAX_fourLeptonsMass = 600.0;
 const int NBINS_deltaPhiTopLeptons = 8; const double MIN_deltaPhiTopLeptons = 0.0; const double MAX_deltaPhiTopLeptons = TMath::Pi();
 const int NBINS_deltaPhiTopLeptonZ = 8; const double MIN_deltaPhiTopLeptonZ = 0.0; const double MAX_deltaPhiTopLeptonZ = TMath::Pi();
-const int NBINS_deltaRapTopLeptons = 8; const double MIN_deltaRapTopLeptons = 0.0; const double MAX_deltaRapTopLeptons = 3.0;
-const int NBINS_deltaRapTopLeptonZ = 8; const double MIN_deltaRapTopLeptonZ = 0.0; const double MAX_deltaRapTopLeptonZ = 3.0;
+const int NBINS_deltaRapTopLeptons = 8; const double BINS_deltaRapTopLeptons[NBINS_deltaRapTopLeptons+1] = { 0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0 };
+const int NBINS_deltaRapTopLeptonZ = 8; const double BINS_deltaRapTopLeptonZ[NBINS_deltaRapTopLeptonZ+1] = { 0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0 };
 
 ttZHistograms::ttZHistograms(int nVar, int nSel, int nSys) :
     nVariants(nVar), nSelections(nSel), nSystematics(nSys),
@@ -118,7 +118,7 @@ ttZHistograms::ttZHistograms(int nVar, int nSel, int nSys) :
     for(int i=0; i<nHistograms; i++) {
         const std::string sI = std::to_string(i);
         hists_category3l[i] = new TH1F(("hist_category3l_var"+sI).c_str(), "", NBINS_category3l, MIN_category3l, MAX_category3l);
-        hists_category4l[i] = new TH1F(("hist_category4l_var"+sI).c_str(), "", NBINS_category3l, MIN_category3l, MAX_category3l);
+        hists_category4l[i] = new TH1F(("hist_category4l_var"+sI).c_str(), "", NBINS_category4l, MIN_category4l, MAX_category4l);
         hists_nJets[i] = new TH1F(("hist_nJets_var"+sI).c_str(), "", NBINS_nJets, MIN_nJets, MAX_nJets);
         hists_nBjets[i] = new TH1F(("hist_nBjets_var"+sI).c_str(), "", NBINS_nBjets, MIN_nBjets, MAX_nBjets);
         hists_dilepPt[i] = new TH1F(("hist_dilepPt_var"+sI).c_str(), "", NBINS_dilepPt, MIN_dilepPt, MAX_dilepPt);
@@ -166,8 +166,8 @@ ttZHistograms::ttZHistograms(int nVar, int nSel, int nSys) :
         hists_fourLeptonsMass[i] = new TH1F(("hist_fourLeptonsMass_var"+sI).c_str(), "", NBINS_fourLeptonsMass, MIN_fourLeptonsMass, MAX_fourLeptonsMass);
         hists_deltaPhiTopLeptons[i] = new TH1F(("hist_deltaPhiTopLeptons_var"+sI).c_str(), "", NBINS_deltaPhiTopLeptons, MIN_deltaPhiTopLeptons, MAX_deltaPhiTopLeptons);
         hists_deltaPhiTopLeptonZ[i] = new TH1F(("hist_deltaPhiTopLeptonZ_var"+sI).c_str(), "", NBINS_deltaPhiTopLeptonZ, MIN_deltaPhiTopLeptonZ, MAX_deltaPhiTopLeptonZ);
-        hists_deltaRapTopLeptons[i] = new TH1F(("hist_deltaRapTopLeptons_var"+sI).c_str(), "", NBINS_deltaRapTopLeptons, MIN_deltaRapTopLeptons, MAX_deltaRapTopLeptons);
-        hists_deltaRapTopLeptonZ[i] = new TH1F(("hist_deltaRapTopLeptonZ_var"+sI).c_str(), "", NBINS_deltaRapTopLeptonZ, MIN_deltaRapTopLeptonZ, MAX_deltaRapTopLeptonZ);
+        hists_deltaRapTopLeptons[i] = new TH1F(("hist_deltaRapTopLeptons_var"+sI).c_str(), "", NBINS_deltaRapTopLeptons, BINS_deltaRapTopLeptons);
+        hists_deltaRapTopLeptonZ[i] = new TH1F(("hist_deltaRapTopLeptonZ_var"+sI).c_str(), "", NBINS_deltaRapTopLeptonZ, BINS_deltaRapTopLeptonZ);
     }
 }
 
@@ -304,6 +304,9 @@ void ttZHistograms::SetValues(ttZ::leptonVariables leptonVars, ttZ::jetVariables
     value_thirdLepPt = IN_RANGE(leptonVars.thirdLepPt, MIN_thirdLepPt, MAX_thirdLepPt);
     value_thirdLepEta = IN_RANGE(leptonVars.thirdLepEta, MIN_thirdLepEta, MAX_thirdLepEta);
     value_thirdLepPhi = PHI_IN_RANGE(leptonVars.thirdLepPhi);
+    value_fourthLepPt = IN_RANGE(leptonVars.fourthLepPt, MIN_fourthLepPt, MAX_fourthLepPt);
+    value_fourthLepEta = IN_RANGE(leptonVars.fourthLepEta, MIN_fourthLepEta, MAX_fourthLepEta);
+    value_fourthLepPhi = PHI_IN_RANGE(leptonVars.thirdLepPhi);
     value_firstJetPt = IN_RANGE(jetVars.firstJetPt, MIN_firstJetPt, MAX_firstJetPt);
     value_firstJetEta = IN_RANGE(jetVars.firstJetEta, MIN_firstJetEta, MAX_firstJetEta);
     value_firstJetPhi = PHI_IN_RANGE(jetVars.firstJetPhi);
@@ -330,8 +333,8 @@ void ttZHistograms::SetValues(ttZ::leptonVariables leptonVars, ttZ::jetVariables
     value_fourLeptonsMass = IN_RANGE(fourLeptonVars.fourLeptonsMass, MIN_fourLeptonsMass, MAX_fourLeptonsMass);
     value_deltaPhiTopLeptons = IN_RANGE(fourLeptonVars.deltaPhiTopLeptons, MIN_deltaPhiTopLeptons, MAX_deltaPhiTopLeptons);
     value_deltaPhiTopLeptonZ = IN_RANGE(fourLeptonVars.deltaPhiTopLeptonZ, MIN_deltaPhiTopLeptonZ, MAX_deltaPhiTopLeptonZ);
-    value_deltaRapTopLeptons = IN_RANGE(fourLeptonVars.deltaRapTopLeptons, MIN_deltaRapTopLeptons, MAX_deltaRapTopLeptons);
-    value_deltaRapTopLeptonZ = IN_RANGE(fourLeptonVars.deltaRapTopLeptonZ, MIN_deltaRapTopLeptonZ, MAX_deltaRapTopLeptonZ);
+    value_deltaRapTopLeptons = IN_RANGE(fourLeptonVars.deltaRapTopLeptons, BINS_deltaRapTopLeptons[0], BINS_deltaRapTopLeptons[NBINS_deltaRapTopLeptons]);
+    value_deltaRapTopLeptonZ = IN_RANGE(fourLeptonVars.deltaRapTopLeptonZ, BINS_deltaRapTopLeptonZ[0], BINS_deltaRapTopLeptonZ[NBINS_deltaRapTopLeptonZ]);
 }
 
 void ttZHistograms::Fill(double weight, int variant, int selection, int systematic) {

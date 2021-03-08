@@ -177,14 +177,19 @@ bool ttZ::passTriggerSelection( const Event& event ){
 
 bool ttZ::passPtCuts( const Event& event ){
 
+    const bool sel4L = (event.numberOfFOLeptons() == 4);
+
     //leading lepton
     if( event.lepton( 0 ).pt() <= 40 ) return false;
 
     //subleading lepton
-    if( event.lepton( 1 ).pt() <= 20 ) return false;
+    if( event.lepton( 1 ).pt() <= ( sel4L ? 10 : 20 ) ) return false;
 
     //trailing lepton
     if( event.lepton( 2 ).pt() <= 10 ) return false;
+
+    //4th lepton
+    if( sel4L && event.lepton( 3 ).pt() <= 10 ) return false;
 
     return true;
 }

@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <TFile.h>
 
@@ -12,21 +14,34 @@ const int nYears = 3;
 const int nSamples = 7;
 const int nVarData = 2;
 const int nVarBkgr = 3;
-const int nVarSgnl = 3;
+const int nVarSgnl = 18;
 const int nSelections = 3;
+const std::vector<std::pair<int, int>> selectionMap({
+    std::make_pair(0, 0), // 4l -> 4l
+    std::make_pair(1, 1), // 3l3j -> 3l
+    std::make_pair(2, 1), // 3l4j -> 3l
+    std::make_pair(0, 2), // 4l -> all
+    std::make_pair(1, 2), // 3l3j -> all
+    std::make_pair(2, 2), // 3l4j -> all
+});
 const int nSysData = 0;
 const int nSysBkgr = 126;
 const int nSysSgnl = 126;
 
-const std::string path = "output/210222_102836/";
+const std::string path = "output/210303_214854/";
 
 void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
 
     ControlPlot plot(nSelections, nSamples, nBins);
 
-    HistogramFile data_2016(path+"data_2016.root", obsname, nVarData, nSelections, nSysData, nBins, 1.0);
-    HistogramFile data_2017(path+"data_2017.root", obsname, nVarData, nSelections, nSysData, nBins, 1.0);
-    HistogramFile data_2018(path+"data_2018.root", obsname, nVarData, nSelections, nSysData, nBins, 1.0);
+    #define HISTOGRAM_FILE(OBJNAME, FILENAME, NVAR, NSYS, XSEC) \
+        HistogramFile OBJNAME(path+FILENAME, obsname, NVAR, nSelections, selectionMap, NSYS, nBins, XSEC)
+    #define ADD_HISTOGRAM_FILE(OBJNAME, FILENAME, XSEC) \
+        OBJNAME.readFile(path+FILENAME, obsname, selectionMap, XSEC)
+
+    HISTOGRAM_FILE(data_2016, "data_2016.root", nVarData, nSysData, 1.0);
+    HISTOGRAM_FILE(data_2017, "data_2017.root", nVarData, nSysData, 1.0);
+    HISTOGRAM_FILE(data_2018, "data_2018.root", nVarData, nSysData, 1.0);
     plot.SetBins(data_2016.binCenters, data_2017.binBoundaries);
     plot.AddSample(data_2016.values[0], 0, 0, true);
     plot.AddSample(data_2017.values[0], 1, 0, true);
@@ -35,19 +50,41 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(data_2017.values[1], 1, 6, true);
     plot.AddSample(data_2018.values[1], 2, 6, true);
 
-    HistogramFile ttZ_2016(path+"ttZ_2016.root", obsname, nVarSgnl, nSelections, nSysSgnl, nBins, xsec_ttZ);
-    HistogramFile ttZ_2017(path+"ttZ_2017.root", obsname, nVarSgnl, nSelections, nSysSgnl, nBins, xsec_ttZ);
-    HistogramFile ttZ_2018(path+"ttZ_2018.root", obsname, nVarSgnl, nSelections, nSysSgnl, nBins, xsec_ttZ);
-    plot.AddSample(ttZ_2016.values[0], 0, 1, false);
-    plot.AddSample(ttZ_2017.values[0], 1, 1, false);
-    plot.AddSample(ttZ_2018.values[0], 2, 1, false);
-    plot.AddSample(ttZ_2016.values[1], 0, 6, false, -1.0);
-    plot.AddSample(ttZ_2017.values[1], 1, 6, false, -1.0);
-    plot.AddSample(ttZ_2018.values[1], 2, 6, false, -1.0);
+    HISTOGRAM_FILE(ttZ_2016, "ttZ1_2016.root", nVarSgnl, nSysSgnl, xsec_ttZ*0.3334);
+    // ADD_HISTOGRAM_FILE(ttZ_2016, "ttZ2_2016.root", xsec_ttZ);
+    ADD_HISTOGRAM_FILE(ttZ_2016, "ttZ3_2016.root", xsec_ttZ*0.3333);
+    ADD_HISTOGRAM_FILE(ttZ_2016, "ttZ4_2016.root", xsec_ttZ*0.3333);
+    // ADD_HISTOGRAM_FILE(ttZ_2016, "ttZ5_2016.root", xsec_ttZ);
+    HISTOGRAM_FILE(ttZ_2017, "ttZ1_2017.root", nVarSgnl, nSysSgnl, xsec_ttZ*0.2);
+    ADD_HISTOGRAM_FILE(ttZ_2017, "ttZ2_2017.root", xsec_ttZ*0.2);
+    ADD_HISTOGRAM_FILE(ttZ_2017, "ttZ3_2017.root", xsec_ttZ*0.2);
+    ADD_HISTOGRAM_FILE(ttZ_2017, "ttZ4_2017.root", xsec_ttZ*0.2);
+    ADD_HISTOGRAM_FILE(ttZ_2017, "ttZ5_2017.root", xsec_ttZ*0.2);
+    HISTOGRAM_FILE(ttZ_2018, "ttZ1_2018.root", nVarSgnl, nSysSgnl, xsec_ttZ*0.2);
+    ADD_HISTOGRAM_FILE(ttZ_2018, "ttZ2_2018.root", xsec_ttZ*0.2);
+    ADD_HISTOGRAM_FILE(ttZ_2018, "ttZ3_2018.root", xsec_ttZ*0.2);
+    ADD_HISTOGRAM_FILE(ttZ_2018, "ttZ4_2018.root", xsec_ttZ*0.2);
+    ADD_HISTOGRAM_FILE(ttZ_2018, "ttZ5_2018.root", xsec_ttZ*0.2);
+    for(int iCat=0; iCat<2; iCat++) {
+        plot.AddSample(ttZ_2016.values[iCat*3], 0, 2-iCat, false);
+        plot.AddSample(ttZ_2017.values[iCat*3], 1, 2-iCat, false);
+        plot.AddSample(ttZ_2018.values[iCat*3], 2, 2-iCat, false);
+        plot.AddSample(ttZ_2016.values[iCat*3+2], 0, 6, false, -1.0);
+        plot.AddSample(ttZ_2017.values[iCat*3+2], 1, 6, false, -1.0);
+        plot.AddSample(ttZ_2018.values[iCat*3+2], 2, 6, false, -1.0);
+    }
+    for(int iCat=2; iCat<6; iCat++) {
+        plot.AddSample(ttZ_2016.values[iCat*3], 0, 3, false);
+        plot.AddSample(ttZ_2017.values[iCat*3], 1, 3, false);
+        plot.AddSample(ttZ_2018.values[iCat*3], 2, 3, false);
+        plot.AddSample(ttZ_2016.values[iCat*3+2], 0, 6, false, -1.0);
+        plot.AddSample(ttZ_2017.values[iCat*3+2], 1, 6, false, -1.0);
+        plot.AddSample(ttZ_2018.values[iCat*3+2], 2, 6, false, -1.0);
+    }
 
-    HistogramFile ttH_2016(path+"ttH_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttH);
-    // HistogramFile ttH_2017(path+"ttH_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttH);
-    HistogramFile ttH_2018(path+"ttH_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttH);
+    HISTOGRAM_FILE(ttH_2016, "ttH_2016.root", nVarBkgr, nSysBkgr, xsec_ttH);
+    // HISTOGRAM_FILE(ttH_2017, "ttH_2017.root", nVarBkgr, nSysBkgr, xsec_ttH);
+    HISTOGRAM_FILE(ttH_2018, "ttH_2018.root", nVarBkgr, nSysBkgr, xsec_ttH);
     plot.AddSample(ttH_2016.values[0], 0, 4, false);
     // plot.AddSample(ttH_2017.values[0], 1, 4, false);
     plot.AddSample(ttH_2018.values[0], 2, 4, false);
@@ -55,29 +92,29 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     // plot.AddSample(ttH_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ttH_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile tZq_2016(path+"tZq_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tZq);
-    HistogramFile tZq_2017(path+"tZq_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tZq);
-    HistogramFile tZq_2018(path+"tZq_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tZq);
-    plot.AddSample(tZq_2016.values[0], 0, 2, false);
-    plot.AddSample(tZq_2017.values[0], 1, 2, false);
-    plot.AddSample(tZq_2018.values[0], 2, 2, false);
+    HISTOGRAM_FILE(tZq_2016, "tZq_2016.root", nVarBkgr, nSysBkgr, xsec_tZq);
+    HISTOGRAM_FILE(tZq_2017, "tZq_2017.root", nVarBkgr, nSysBkgr, xsec_tZq);
+    HISTOGRAM_FILE(tZq_2018, "tZq_2018.root", nVarBkgr, nSysBkgr, xsec_tZq);
+    plot.AddSample(tZq_2016.values[0], 0, 4, false);
+    plot.AddSample(tZq_2017.values[0], 1, 4, false);
+    plot.AddSample(tZq_2018.values[0], 2, 4, false);
     plot.AddSample(tZq_2016.values[2], 0, 6, false, -1.0);
     plot.AddSample(tZq_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(tZq_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile tWZ_2016(path+"tWZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tWZ);
-    HistogramFile tWZ_2017(path+"tWZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tWZ);
-    HistogramFile tWZ_2018(path+"tWZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tWZ);
-    plot.AddSample(tWZ_2016.values[0], 0, 3, false);
-    plot.AddSample(tWZ_2017.values[0], 1, 3, false);
-    plot.AddSample(tWZ_2018.values[0], 2, 3, false);
+    HISTOGRAM_FILE(tWZ_2016, "tWZ_2016.root", nVarBkgr, nSysBkgr, xsec_tWZ);
+    HISTOGRAM_FILE(tWZ_2017, "tWZ_2017.root", nVarBkgr, nSysBkgr, xsec_tWZ);
+    HISTOGRAM_FILE(tWZ_2018, "tWZ_2018.root", nVarBkgr, nSysBkgr, xsec_tWZ);
+    plot.AddSample(tWZ_2016.values[0], 0, 4, false);
+    plot.AddSample(tWZ_2017.values[0], 1, 4, false);
+    plot.AddSample(tWZ_2018.values[0], 2, 4, false);
     plot.AddSample(tWZ_2016.values[2], 0, 6, false, -1.0);
     plot.AddSample(tWZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(tWZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ttW_2016(path+"ttW_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttW);
-    HistogramFile ttW_2017(path+"ttW_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttW);
-    HistogramFile ttW_2018(path+"ttW_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttW);
+    HISTOGRAM_FILE(ttW_2016, "ttW_2016.root", nVarBkgr, nSysBkgr, xsec_ttW);
+    HISTOGRAM_FILE(ttW_2017, "ttW_2017.root", nVarBkgr, nSysBkgr, xsec_ttW);
+    HISTOGRAM_FILE(ttW_2018, "ttW_2018.root", nVarBkgr, nSysBkgr, xsec_ttW);
     plot.AddSample(ttW_2016.values[0], 0, 4, false);
     plot.AddSample(ttW_2017.values[0], 1, 4, false);
     plot.AddSample(ttW_2018.values[0], 2, 4, false);
@@ -85,19 +122,19 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ttW_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ttW_2018.values[2], 2, 6, false, -1.0);
 
-    // HistogramFile tHQ_2016(path+"tHQ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tHQ);
-    // HistogramFile tHQ_2017(path+"tHQ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tHQ);
-    HistogramFile tHQ_2018(path+"tHQ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tHQ);
-    // plot.AddSample(tHQ_2016.values[0], 0, 4, false);
-    // plot.AddSample(tHQ_2017.values[0], 1, 4, false);
+    HISTOGRAM_FILE(tHQ_2016, "tHQ_2016.root", nVarBkgr, nSysBkgr, xsec_tHQ);
+    HISTOGRAM_FILE(tHQ_2017, "tHQ_2017.root", nVarBkgr, nSysBkgr, xsec_tHQ);
+    HISTOGRAM_FILE(tHQ_2018, "tHQ_2018.root", nVarBkgr, nSysBkgr, xsec_tHQ);
+    plot.AddSample(tHQ_2016.values[0], 0, 4, false);
+    plot.AddSample(tHQ_2017.values[0], 1, 4, false);
     plot.AddSample(tHQ_2018.values[0], 2, 4, false);
-    // plot.AddSample(tHQ_2016.values[2], 0, 6, false, -1.0);
-    // plot.AddSample(tHQ_2017.values[2], 1, 6, false, -1.0);
+    plot.AddSample(tHQ_2016.values[2], 0, 6, false, -1.0);
+    plot.AddSample(tHQ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(tHQ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile tHW_2016(path+"tHW_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tHW);
-    HistogramFile tHW_2017(path+"tHW_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tHW);
-    HistogramFile tHW_2018(path+"tHW_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tHW);
+    HISTOGRAM_FILE(tHW_2016, "tHW_2016.root", nVarBkgr, nSysBkgr, xsec_tHW);
+    HISTOGRAM_FILE(tHW_2017, "tHW_2017.root", nVarBkgr, nSysBkgr, xsec_tHW);
+    HISTOGRAM_FILE(tHW_2018, "tHW_2018.root", nVarBkgr, nSysBkgr, xsec_tHW);
     plot.AddSample(tHW_2016.values[0], 0, 4, false);
     plot.AddSample(tHW_2017.values[0], 1, 4, false);
     plot.AddSample(tHW_2018.values[0], 2, 4, false);
@@ -105,9 +142,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(tHW_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(tHW_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ttZlight_2016(path+"ttZlight_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttZlight);
-    HistogramFile ttZlight_2017(path+"ttZlight_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttZlight);
-    HistogramFile ttZlight_2018(path+"ttZlight_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttZlight);
+    HISTOGRAM_FILE(ttZlight_2016, "ttZlight_2016.root", nVarBkgr, nSysBkgr, xsec_ttZlight);
+    HISTOGRAM_FILE(ttZlight_2017, "ttZlight_2017.root", nVarBkgr, nSysBkgr, xsec_ttZlight);
+    HISTOGRAM_FILE(ttZlight_2018, "ttZlight_2018.root", nVarBkgr, nSysBkgr, xsec_ttZlight);
     plot.AddSample(ttZlight_2016.values[0], 0, 4, false);
     plot.AddSample(ttZlight_2017.values[0], 1, 4, false);
     plot.AddSample(ttZlight_2018.values[0], 2, 4, false);
@@ -115,9 +152,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ttZlight_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ttZlight_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile tttt_2016(path+"tttt_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tttt);
-    HistogramFile tttt_2017(path+"tttt_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tttt);
-    HistogramFile tttt_2018(path+"tttt_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tttt);
+    HISTOGRAM_FILE(tttt_2016, "tttt_2016.root", nVarBkgr, nSysBkgr, xsec_tttt);
+    HISTOGRAM_FILE(tttt_2017, "tttt_2017.root", nVarBkgr, nSysBkgr, xsec_tttt);
+    HISTOGRAM_FILE(tttt_2018, "tttt_2018.root", nVarBkgr, nSysBkgr, xsec_tttt);
     plot.AddSample(tttt_2016.values[0], 0, 4, false);
     plot.AddSample(tttt_2017.values[0], 1, 4, false);
     plot.AddSample(tttt_2018.values[0], 2, 4, false);
@@ -125,9 +162,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(tttt_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(tttt_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ttWW_2016(path+"ttWW_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttWW);
-    HistogramFile ttWW_2017(path+"ttWW_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttWW);
-    HistogramFile ttWW_2018(path+"ttWW_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttWW);
+    HISTOGRAM_FILE(ttWW_2016, "ttWW_2016.root", nVarBkgr, nSysBkgr, xsec_ttWW);
+    HISTOGRAM_FILE(ttWW_2017, "ttWW_2017.root", nVarBkgr, nSysBkgr, xsec_ttWW);
+    HISTOGRAM_FILE(ttWW_2018, "ttWW_2018.root", nVarBkgr, nSysBkgr, xsec_ttWW);
     plot.AddSample(ttWW_2016.values[0], 0, 4, false);
     plot.AddSample(ttWW_2017.values[0], 1, 4, false);
     plot.AddSample(ttWW_2018.values[0], 2, 4, false);
@@ -135,9 +172,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ttWW_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ttWW_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ttWZ_2016(path+"ttWZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttWZ);
-    HistogramFile ttWZ_2017(path+"ttWZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttWZ);
-    HistogramFile ttWZ_2018(path+"ttWZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttWZ);
+    HISTOGRAM_FILE(ttWZ_2016, "ttWZ_2016.root", nVarBkgr, nSysBkgr, xsec_ttWZ);
+    HISTOGRAM_FILE(ttWZ_2017, "ttWZ_2017.root", nVarBkgr, nSysBkgr, xsec_ttWZ);
+    HISTOGRAM_FILE(ttWZ_2018, "ttWZ_2018.root", nVarBkgr, nSysBkgr, xsec_ttWZ);
     plot.AddSample(ttWZ_2016.values[0], 0, 4, false);
     plot.AddSample(ttWZ_2017.values[0], 1, 4, false);
     plot.AddSample(ttWZ_2018.values[0], 2, 4, false);
@@ -145,9 +182,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ttWZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ttWZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ttZZ_2016(path+"ttZZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttZZ);
-    HistogramFile ttZZ_2017(path+"ttZZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttZZ);
-    HistogramFile ttZZ_2018(path+"ttZZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttZZ);
+    HISTOGRAM_FILE(ttZZ_2016, "ttZZ_2016.root", nVarBkgr, nSysBkgr, xsec_ttZZ);
+    HISTOGRAM_FILE(ttZZ_2017, "ttZZ_2017.root", nVarBkgr, nSysBkgr, xsec_ttZZ);
+    HISTOGRAM_FILE(ttZZ_2018, "ttZZ_2018.root", nVarBkgr, nSysBkgr, xsec_ttZZ);
     plot.AddSample(ttZZ_2016.values[0], 0, 4, false);
     plot.AddSample(ttZZ_2017.values[0], 1, 4, false);
     plot.AddSample(ttZZ_2018.values[0], 2, 4, false);
@@ -155,9 +192,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ttZZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ttZZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile WZ3L_2016(path+"WZ3L_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZ3L);
-    HistogramFile WZ3L_2017(path+"WZ3L_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZ3L);
-    HistogramFile WZ3L_2018(path+"WZ3L_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZ3L);
+    HISTOGRAM_FILE(WZ3L_2016, "WZ3L_2016.root", nVarBkgr, nSysBkgr, xsec_WZ3L);
+    HISTOGRAM_FILE(WZ3L_2017, "WZ3L_2017.root", nVarBkgr, nSysBkgr, xsec_WZ3L);
+    HISTOGRAM_FILE(WZ3L_2018, "WZ3L_2018.root", nVarBkgr, nSysBkgr, xsec_WZ3L);
     plot.AddSample(WZ3L_2016.values[0], 0, 5, false);
     plot.AddSample(WZ3L_2017.values[0], 1, 5, false);
     plot.AddSample(WZ3L_2018.values[0], 2, 5, false);
@@ -165,9 +202,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(WZ3L_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(WZ3L_2018.values[2], 2, 6, false, -1.0);
 
-    // HistogramFile WZ2L_2016(path+"WZ2L_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZ2L);
-    // HistogramFile WZ2L_2017(path+"WZ2L_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZ2L);
-    // HistogramFile WZ2L_2018(path+"WZ2L_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZ2L);
+    // HISTOGRAM_FILE(WZ2L_2016, "WZ2L_2016.root", nVarBkgr, nSysBkgr, xsec_WZ2L);
+    // HISTOGRAM_FILE(WZ2L_2017, "WZ2L_2017.root", nVarBkgr, nSysBkgr, xsec_WZ2L);
+    // HISTOGRAM_FILE(WZ2L_2018, "WZ2L_2018.root", nVarBkgr, nSysBkgr, xsec_WZ2L);
     // plot.AddSample(WZ2L_2016.values[0], 0, 5, false);
     // plot.AddSample(WZ2L_2017.values[0], 1, 5, false);
     // plot.AddSample(WZ2L_2018.values[0], 2, 5, false);
@@ -175,9 +212,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     // plot.AddSample(WZ2L_2017.values[2], 1, 6, false, -1.0);
     // plot.AddSample(WZ2L_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile DY_2016(path+"DY_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_DY);
-    HistogramFile DY_2017(path+"DY_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_DY);
-    HistogramFile DY_2018(path+"DY_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_DY);
+    HISTOGRAM_FILE(DY_2016, "DY_2016.root", nVarBkgr, nSysBkgr, xsec_DY);
+    HISTOGRAM_FILE(DY_2017, "DY_2017.root", nVarBkgr, nSysBkgr, xsec_DY);
+    HISTOGRAM_FILE(DY_2018, "DY_2018.root", nVarBkgr, nSysBkgr, xsec_DY);
     plot.AddSample(DY_2016.values[0], 0, 5, false);
     plot.AddSample(DY_2017.values[0], 1, 5, false);
     plot.AddSample(DY_2018.values[0], 2, 5, false);
@@ -185,9 +222,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(DY_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(DY_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile tG_2016(path+"tG_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tG);
-    HistogramFile tG_2017(path+"tG_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tG);
-    HistogramFile tG_2018(path+"tG_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tG);
+    HISTOGRAM_FILE(tG_2016, "tG_2016.root", nVarBkgr, nSysBkgr, xsec_tG);
+    HISTOGRAM_FILE(tG_2017, "tG_2017.root", nVarBkgr, nSysBkgr, xsec_tG);
+    HISTOGRAM_FILE(tG_2018, "tG_2018.root", nVarBkgr, nSysBkgr, xsec_tG);
     plot.AddSample(tG_2016.values[0], 0, 4, false);
     plot.AddSample(tG_2017.values[0], 1, 4, false);
     plot.AddSample(tG_2018.values[0], 2, 4, false);
@@ -195,9 +232,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(tG_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(tG_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ttG_2016(path+"ttG_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttG);
-    HistogramFile ttG_2017(path+"ttG_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttG);
-    HistogramFile ttG_2018(path+"ttG_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ttG);
+    HISTOGRAM_FILE(ttG_2016, "ttG_2016.root", nVarBkgr, nSysBkgr, xsec_ttG);
+    HISTOGRAM_FILE(ttG_2017, "ttG_2017.root", nVarBkgr, nSysBkgr, xsec_ttG);
+    HISTOGRAM_FILE(ttG_2018, "ttG_2018.root", nVarBkgr, nSysBkgr, xsec_ttG);
     plot.AddSample(ttG_2016.values[0], 0, 4, false);
     plot.AddSample(ttG_2017.values[0], 1, 4, false);
     plot.AddSample(ttG_2018.values[0], 2, 4, false);
@@ -205,9 +242,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ttG_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ttG_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile WG_2016(path+"WG_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WG);
-    HistogramFile WG_2017(path+"WG_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WG);
-    HistogramFile WG_2018(path+"WG_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WG);
+    HISTOGRAM_FILE(WG_2016, "WG_2016.root", nVarBkgr, nSysBkgr, xsec_WG);
+    HISTOGRAM_FILE(WG_2017, "WG_2017.root", nVarBkgr, nSysBkgr, xsec_WG);
+    HISTOGRAM_FILE(WG_2018, "WG_2018.root", nVarBkgr, nSysBkgr, xsec_WG);
     plot.AddSample(WG_2016.values[0], 0, 5, false);
     plot.AddSample(WG_2017.values[0], 1, 5, false);
     plot.AddSample(WG_2018.values[0], 2, 5, false);
@@ -215,9 +252,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(WG_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(WG_2018.values[2], 2, 6, false, -1.0);
 
-    // HistogramFile tt_2016(path+"tt_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tt);
-    // HistogramFile tt_2017(path+"tt_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tt);
-    // HistogramFile tt_2018(path+"tt_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_tt);
+    // HISTOGRAM_FILE(tt_2016, "tt_2016.root", nVarBkgr, nSysBkgr, xsec_tt);
+    // HISTOGRAM_FILE(tt_2017, "tt_2017.root", nVarBkgr, nSysBkgr, xsec_tt);
+    // HISTOGRAM_FILE(tt_2018, "tt_2018.root", nVarBkgr, nSysBkgr, xsec_tt);
     // plot.AddSample(tt_2016.values[0], 0, 4, false);
     // plot.AddSample(tt_2017.values[0], 1, 4, false);
     // plot.AddSample(tt_2018.values[0], 2, 4, false);
@@ -225,9 +262,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     // plot.AddSample(tt_2017.values[2], 1, 6, false, -1.0);
     // plot.AddSample(tt_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ZZ4L_2016(path+"ZZ4L_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ4L);
-    HistogramFile ZZ4L_2017(path+"ZZ4L_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ4L);
-    HistogramFile ZZ4L_2018(path+"ZZ4L_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ4L);
+    HISTOGRAM_FILE(ZZ4L_2016, "ZZ4L_2016.root", nVarBkgr, nSysBkgr, xsec_ZZ4L);
+    HISTOGRAM_FILE(ZZ4L_2017, "ZZ4L_2017.root", nVarBkgr, nSysBkgr, xsec_ZZ4L);
+    HISTOGRAM_FILE(ZZ4L_2018, "ZZ4L_2018.root", nVarBkgr, nSysBkgr, xsec_ZZ4L);
     plot.AddSample(ZZ4L_2016.values[0], 0, 5, false);
     plot.AddSample(ZZ4L_2017.values[0], 1, 5, false);
     plot.AddSample(ZZ4L_2018.values[0], 2, 5, false);
@@ -235,9 +272,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ZZ4L_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ZZ4L_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ZZ2E2M_2016(path+"ZZ2E2M_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ2E2M);
-    HistogramFile ZZ2E2M_2017(path+"ZZ2E2M_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ2E2M);
-    HistogramFile ZZ2E2M_2018(path+"ZZ2E2M_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ2E2M);
+    HISTOGRAM_FILE(ZZ2E2M_2016, "ZZ2E2M_2016.root", nVarBkgr, nSysBkgr, xsec_ZZ2E2M);
+    HISTOGRAM_FILE(ZZ2E2M_2017, "ZZ2E2M_2017.root", nVarBkgr, nSysBkgr, xsec_ZZ2E2M);
+    HISTOGRAM_FILE(ZZ2E2M_2018, "ZZ2E2M_2018.root", nVarBkgr, nSysBkgr, xsec_ZZ2E2M);
     plot.AddSample(ZZ2E2M_2016.values[0], 0, 5, false);
     plot.AddSample(ZZ2E2M_2017.values[0], 1, 5, false);
     plot.AddSample(ZZ2E2M_2018.values[0], 2, 5, false);
@@ -245,9 +282,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ZZ2E2M_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ZZ2E2M_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ZZ2E2T_2016(path+"ZZ2E2T_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ2E2T);
-    HistogramFile ZZ2E2T_2017(path+"ZZ2E2T_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ2E2T);
-    HistogramFile ZZ2E2T_2018(path+"ZZ2E2T_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ2E2T);
+    HISTOGRAM_FILE(ZZ2E2T_2016, "ZZ2E2T_2016.root", nVarBkgr, nSysBkgr, xsec_ZZ2E2T);
+    HISTOGRAM_FILE(ZZ2E2T_2017, "ZZ2E2T_2017.root", nVarBkgr, nSysBkgr, xsec_ZZ2E2T);
+    HISTOGRAM_FILE(ZZ2E2T_2018, "ZZ2E2T_2018.root", nVarBkgr, nSysBkgr, xsec_ZZ2E2T);
     plot.AddSample(ZZ2E2T_2016.values[0], 0, 5, false);
     plot.AddSample(ZZ2E2T_2017.values[0], 1, 5, false);
     plot.AddSample(ZZ2E2T_2018.values[0], 2, 5, false);
@@ -255,9 +292,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ZZ2E2T_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ZZ2E2T_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ZZ2M2T_2016(path+"ZZ2M2T_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ2M2T);
-    HistogramFile ZZ2M2T_2017(path+"ZZ2M2T_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ2M2T);
-    HistogramFile ZZ2M2T_2018(path+"ZZ2M2T_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ2M2T);
+    HISTOGRAM_FILE(ZZ2M2T_2016, "ZZ2M2T_2016.root", nVarBkgr, nSysBkgr, xsec_ZZ2M2T);
+    HISTOGRAM_FILE(ZZ2M2T_2017, "ZZ2M2T_2017.root", nVarBkgr, nSysBkgr, xsec_ZZ2M2T);
+    HISTOGRAM_FILE(ZZ2M2T_2018, "ZZ2M2T_2018.root", nVarBkgr, nSysBkgr, xsec_ZZ2M2T);
     plot.AddSample(ZZ2M2T_2016.values[0], 0, 5, false);
     plot.AddSample(ZZ2M2T_2017.values[0], 1, 5, false);
     plot.AddSample(ZZ2M2T_2018.values[0], 2, 5, false);
@@ -265,9 +302,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ZZ2M2T_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ZZ2M2T_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ZZ4E_2016(path+"ZZ4E_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ4E);
-    HistogramFile ZZ4E_2017(path+"ZZ4E_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ4E);
-    HistogramFile ZZ4E_2018(path+"ZZ4E_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ4E);
+    HISTOGRAM_FILE(ZZ4E_2016, "ZZ4E_2016.root", nVarBkgr, nSysBkgr, xsec_ZZ4E);
+    HISTOGRAM_FILE(ZZ4E_2017, "ZZ4E_2017.root", nVarBkgr, nSysBkgr, xsec_ZZ4E);
+    HISTOGRAM_FILE(ZZ4E_2018, "ZZ4E_2018.root", nVarBkgr, nSysBkgr, xsec_ZZ4E);
     plot.AddSample(ZZ4E_2016.values[0], 0, 5, false);
     plot.AddSample(ZZ4E_2017.values[0], 1, 5, false);
     plot.AddSample(ZZ4E_2018.values[0], 2, 5, false);
@@ -275,9 +312,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ZZ4E_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ZZ4E_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ZZ4M_2016(path+"ZZ4M_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ4M);
-    HistogramFile ZZ4M_2017(path+"ZZ4M_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ4M);
-    HistogramFile ZZ4M_2018(path+"ZZ4M_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZ4M);
+    HISTOGRAM_FILE(ZZ4M_2016, "ZZ4M_2016.root", nVarBkgr, nSysBkgr, xsec_ZZ4M);
+    HISTOGRAM_FILE(ZZ4M_2017, "ZZ4M_2017.root", nVarBkgr, nSysBkgr, xsec_ZZ4M);
+    HISTOGRAM_FILE(ZZ4M_2018, "ZZ4M_2018.root", nVarBkgr, nSysBkgr, xsec_ZZ4M);
     plot.AddSample(ZZ4M_2016.values[0], 0, 5, false);
     plot.AddSample(ZZ4M_2017.values[0], 1, 5, false);
     plot.AddSample(ZZ4M_2018.values[0], 2, 5, false);
@@ -285,9 +322,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ZZ4M_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ZZ4M_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ggHZZ_2016(path+"ggHZZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ggHZZ);
-    HistogramFile ggHZZ_2017(path+"ggHZZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ggHZZ);
-    HistogramFile ggHZZ_2018(path+"ggHZZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ggHZZ);
+    HISTOGRAM_FILE(ggHZZ_2016, "ggHZZ_2016.root", nVarBkgr, nSysBkgr, xsec_ggHZZ);
+    HISTOGRAM_FILE(ggHZZ_2017, "ggHZZ_2017.root", nVarBkgr, nSysBkgr, xsec_ggHZZ);
+    HISTOGRAM_FILE(ggHZZ_2018, "ggHZZ_2018.root", nVarBkgr, nSysBkgr, xsec_ggHZZ);
     plot.AddSample(ggHZZ_2016.values[0], 0, 5, false);
     plot.AddSample(ggHZZ_2017.values[0], 1, 5, false);
     plot.AddSample(ggHZZ_2018.values[0], 2, 5, false);
@@ -295,9 +332,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ggHZZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ggHZZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile VBFHZZ_2016(path+"VBFHZZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_VBFHZZ);
-    HistogramFile VBFHZZ_2017(path+"VBFHZZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_VBFHZZ);
-    HistogramFile VBFHZZ_2018(path+"VBFHZZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_VBFHZZ);
+    HISTOGRAM_FILE(VBFHZZ_2016, "VBFHZZ_2016.root", nVarBkgr, nSysBkgr, xsec_VBFHZZ);
+    HISTOGRAM_FILE(VBFHZZ_2017, "VBFHZZ_2017.root", nVarBkgr, nSysBkgr, xsec_VBFHZZ);
+    HISTOGRAM_FILE(VBFHZZ_2018, "VBFHZZ_2018.root", nVarBkgr, nSysBkgr, xsec_VBFHZZ);
     plot.AddSample(VBFHZZ_2016.values[0], 0, 5, false);
     plot.AddSample(VBFHZZ_2017.values[0], 1, 5, false);
     plot.AddSample(VBFHZZ_2018.values[0], 2, 5, false);
@@ -305,9 +342,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(VBFHZZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(VBFHZZ_2018.values[2], 2, 6, false, -1.0);
 
-    // HistogramFile WpHZZ_2016(path+"WpHZZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WpHZZ);
-    // HistogramFile WpHZZ_2017(path+"WpHZZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WpHZZ);
-    // HistogramFile WpHZZ_2018(path+"WpHZZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WpHZZ);
+    // HISTOGRAM_FILE(WpHZZ_2016, "WpHZZ_2016.root", nVarBkgr, nSysBkgr, xsec_WpHZZ);
+    // HISTOGRAM_FILE(WpHZZ_2017, "WpHZZ_2017.root", nVarBkgr, nSysBkgr, xsec_WpHZZ);
+    // HISTOGRAM_FILE(WpHZZ_2018, "WpHZZ_2018.root", nVarBkgr, nSysBkgr, xsec_WpHZZ);
     // plot.AddSample(WpHZZ_2016.values[0], 0, 5, false);
     // plot.AddSample(WpHZZ_2017.values[0], 1, 5, false);
     // plot.AddSample(WpHZZ_2018.values[0], 2, 5, false);
@@ -315,9 +352,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     // plot.AddSample(WpHZZ_2017.values[2], 1, 6, false, -1.0);
     // plot.AddSample(WpHZZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile WmHZZ_2016(path+"WmHZZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WmHZZ);
-    HistogramFile WmHZZ_2017(path+"WmHZZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WmHZZ);
-    HistogramFile WmHZZ_2018(path+"WmHZZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WmHZZ);
+    HISTOGRAM_FILE(WmHZZ_2016, "WmHZZ_2016.root", nVarBkgr, nSysBkgr, xsec_WmHZZ);
+    HISTOGRAM_FILE(WmHZZ_2017, "WmHZZ_2017.root", nVarBkgr, nSysBkgr, xsec_WmHZZ);
+    HISTOGRAM_FILE(WmHZZ_2018, "WmHZZ_2018.root", nVarBkgr, nSysBkgr, xsec_WmHZZ);
     plot.AddSample(WmHZZ_2016.values[0], 0, 5, false);
     plot.AddSample(WmHZZ_2017.values[0], 1, 5, false);
     plot.AddSample(WmHZZ_2018.values[0], 2, 5, false);
@@ -325,9 +362,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(WmHZZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(WmHZZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ZHZZ_2016(path+"ZHZZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZHZZ);
-    HistogramFile ZHZZ_2017(path+"ZHZZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZHZZ);
-    HistogramFile ZHZZ_2018(path+"ZHZZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZHZZ);
+    HISTOGRAM_FILE(ZHZZ_2016, "ZHZZ_2016.root", nVarBkgr, nSysBkgr, xsec_ZHZZ);
+    HISTOGRAM_FILE(ZHZZ_2017, "ZHZZ_2017.root", nVarBkgr, nSysBkgr, xsec_ZHZZ);
+    HISTOGRAM_FILE(ZHZZ_2018, "ZHZZ_2018.root", nVarBkgr, nSysBkgr, xsec_ZHZZ);
     plot.AddSample(ZHZZ_2016.values[0], 0, 5, false);
     plot.AddSample(ZHZZ_2017.values[0], 1, 5, false);
     plot.AddSample(ZHZZ_2018.values[0], 2, 5, false);
@@ -335,9 +372,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ZHZZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ZHZZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile WZG_2016(path+"WZG_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZG);
-    HistogramFile WZG_2017(path+"WZG_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZG);
-    HistogramFile WZG_2018(path+"WZG_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZG);
+    HISTOGRAM_FILE(WZG_2016, "WZG_2016.root", nVarBkgr, nSysBkgr, xsec_WZG);
+    HISTOGRAM_FILE(WZG_2017, "WZG_2017.root", nVarBkgr, nSysBkgr, xsec_WZG);
+    HISTOGRAM_FILE(WZG_2018, "WZG_2018.root", nVarBkgr, nSysBkgr, xsec_WZG);
     plot.AddSample(WZG_2016.values[0], 0, 5, false);
     plot.AddSample(WZG_2017.values[0], 1, 5, false);
     plot.AddSample(WZG_2018.values[0], 2, 5, false);
@@ -345,9 +382,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(WZG_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(WZG_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile ZZZ_2016(path+"ZZZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZZ);
-    HistogramFile ZZZ_2017(path+"ZZZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZZ);
-    HistogramFile ZZZ_2018(path+"ZZZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_ZZZ);
+    HISTOGRAM_FILE(ZZZ_2016, "ZZZ_2016.root", nVarBkgr, nSysBkgr, xsec_ZZZ);
+    HISTOGRAM_FILE(ZZZ_2017, "ZZZ_2017.root", nVarBkgr, nSysBkgr, xsec_ZZZ);
+    HISTOGRAM_FILE(ZZZ_2018, "ZZZ_2018.root", nVarBkgr, nSysBkgr, xsec_ZZZ);
     plot.AddSample(ZZZ_2016.values[0], 0, 5, false);
     plot.AddSample(ZZZ_2017.values[0], 1, 5, false);
     plot.AddSample(ZZZ_2018.values[0], 2, 5, false);
@@ -355,9 +392,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ZZZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(ZZZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile WZZ_2016(path+"WZZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZZ);
-    HistogramFile WZZ_2017(path+"WZZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZZ);
-    HistogramFile WZZ_2018(path+"WZZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WZZ);
+    HISTOGRAM_FILE(WZZ_2016, "WZZ_2016.root", nVarBkgr, nSysBkgr, xsec_WZZ);
+    HISTOGRAM_FILE(WZZ_2017, "WZZ_2017.root", nVarBkgr, nSysBkgr, xsec_WZZ);
+    HISTOGRAM_FILE(WZZ_2018, "WZZ_2018.root", nVarBkgr, nSysBkgr, xsec_WZZ);
     plot.AddSample(WZZ_2016.values[0], 0, 5, false);
     plot.AddSample(WZZ_2017.values[0], 1, 5, false);
     plot.AddSample(WZZ_2018.values[0], 2, 5, false);
@@ -365,9 +402,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(WZZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(WZZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile WWZ_2016(path+"WWZ_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WWZ);
-    HistogramFile WWZ_2017(path+"WWZ_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WWZ);
-    HistogramFile WWZ_2018(path+"WWZ_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WWZ);
+    HISTOGRAM_FILE(WWZ_2016, "WWZ_2016.root", nVarBkgr, nSysBkgr, xsec_WWZ);
+    HISTOGRAM_FILE(WWZ_2017, "WWZ_2017.root", nVarBkgr, nSysBkgr, xsec_WWZ);
+    HISTOGRAM_FILE(WWZ_2018, "WWZ_2018.root", nVarBkgr, nSysBkgr, xsec_WWZ);
     plot.AddSample(WWZ_2016.values[0], 0, 5, false);
     plot.AddSample(WWZ_2017.values[0], 1, 5, false);
     plot.AddSample(WWZ_2018.values[0], 2, 5, false);
@@ -375,9 +412,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(WWZ_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(WWZ_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile WWW_2016(path+"WWW_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WWW);
-    HistogramFile WWW_2017(path+"WWW_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WWW);
-    HistogramFile WWW_2018(path+"WWW_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WWW);
+    HISTOGRAM_FILE(WWW_2016, "WWW_2016.root", nVarBkgr, nSysBkgr, xsec_WWW);
+    HISTOGRAM_FILE(WWW_2017, "WWW_2017.root", nVarBkgr, nSysBkgr, xsec_WWW);
+    HISTOGRAM_FILE(WWW_2018, "WWW_2018.root", nVarBkgr, nSysBkgr, xsec_WWW);
     plot.AddSample(WWW_2016.values[0], 0, 5, false);
     plot.AddSample(WWW_2017.values[0], 1, 5, false);
     plot.AddSample(WWW_2018.values[0], 2, 5, false);
@@ -385,9 +422,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(WWW_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(WWW_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile WWDS_2016(path+"WWDS_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WWDS);
-    HistogramFile WWDS_2017(path+"WWDS_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WWDS);
-    HistogramFile WWDS_2018(path+"WWDS_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WWDS);
+    HISTOGRAM_FILE(WWDS_2016, "WWDS_2016.root", nVarBkgr, nSysBkgr, xsec_WWDS);
+    HISTOGRAM_FILE(WWDS_2017, "WWDS_2017.root", nVarBkgr, nSysBkgr, xsec_WWDS);
+    HISTOGRAM_FILE(WWDS_2018, "WWDS_2018.root", nVarBkgr, nSysBkgr, xsec_WWDS);
     plot.AddSample(WWDS_2016.values[0], 0, 5, false);
     plot.AddSample(WWDS_2017.values[0], 1, 5, false);
     plot.AddSample(WWDS_2018.values[0], 2, 5, false);
@@ -395,15 +432,15 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(WWDS_2017.values[2], 1, 6, false, -1.0);
     plot.AddSample(WWDS_2018.values[2], 2, 6, false, -1.0);
 
-    HistogramFile WW_2016(path+"WW_2016.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WW);
-    // HistogramFile WW_2017(path+"WW_2017.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WW);
-    // HistogramFile WW_2018(path+"WW_2018.root", obsname, nVarBkgr, nSelections, nSysBkgr, nBins, xsec_WW);
+    HISTOGRAM_FILE(WW_2016, "WW_2016.root", nVarBkgr, nSysBkgr, xsec_WW);
+    HISTOGRAM_FILE(WW_2017, "WW_2017.root", nVarBkgr, nSysBkgr, xsec_WW);
+    HISTOGRAM_FILE(WW_2018, "WW_2018.root", nVarBkgr, nSysBkgr, xsec_WW);
     plot.AddSample(WW_2016.values[0], 0, 5, false);
-    // plot.AddSample(WW_2017.values[0], 1, 5, false);
-    // plot.AddSample(WW_2018.values[0], 2, 5, false);
+    plot.AddSample(WW_2017.values[0], 1, 5, false);
+    plot.AddSample(WW_2018.values[0], 2, 5, false);
     plot.AddSample(WW_2016.values[2], 0, 6, false, -1.0);
-    // plot.AddSample(WW_2017.values[2], 1, 6, false, -1.0);
-    // plot.AddSample(WW_2018.values[2], 2, 6, false, -1.0);
+    plot.AddSample(WW_2017.values[2], 1, 6, false, -1.0);
+    plot.AddSample(WW_2018.values[2], 2, 6, false, -1.0);
 
     plot.Evaluate();
 
@@ -411,8 +448,8 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
         const std::string sYear = (iYear==0) ? "2016" : (iYear==1) ? "2017" : (iYear==2) ? "2018" : "run2";
         const std::string sLumi = (iYear==0) ? "35.9" : (iYear==1) ? "41.5" : (iYear==2) ? "59.7" : "137";
         for(int iSel=0; iSel<nSelections; iSel++) {
-            const std::string sLep = "=3ℓ";
-            const std::string sJet = (iSel==0) ? "≥3j" : (iSel==1) ? "=3j" : "≥4j";
+            const std::string sLep = (iSel==0) ? "=4ℓ" : (iSel==1) ? "=3ℓ" : "3ℓ/4ℓ";
+            const std::string sJet = (iSel==0) ? "≥2j" : (iSel==1) ? "≥3j" : "≥3j/2j";
             const std::string sTitle = sLep+", "+sJet+", ≥1b";
             const std::string sSelection = "sel"+std::to_string(iSel);
             const std::string data = plot.Print(iYear, iSel);
