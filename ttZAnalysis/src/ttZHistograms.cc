@@ -43,6 +43,7 @@ const int NBINS_thirdJetPhi = 10; const double MIN_thirdJetPhi = -TMath::Pi(); c
 const int NBINS_fourthJetPt = 10; const double MIN_fourthJetPt = 30.0; const double MAX_fourthJetPt = 130.0;
 const int NBINS_fourthJetEta = 10; const double MIN_fourthJetEta = -2.5; const double MAX_fourthJetEta = 2.5;
 const int NBINS_fourthJetPhi = 10; const double MIN_fourthJetPhi = -TMath::Pi(); const double MAX_fourthJetPhi = -TMath::Pi();
+const int NBINS_zbosonPt = 8; const double BINS_zbosonPt[NBINS_zbosonPt+1] = { 0.0, 37.5, 75.0, 112.5, 150.0, 200.0, 250.0, 375.0, 500.0 };
 const int NBINS_ttzMass = 8; const double BINS_ttzMass[NBINS_ttzMass+1] = { 436.0, 580.0, 640.0, 720.0, 800.0, 890.0, 1000.0, 1150.0, 1500.0 };
 const int NBINS_ttbarMass = 8; const double BINS_ttbarMass[NBINS_ttbarMass+1] = { 345.0, 400.0, 440.0, 485.0, 540.0, 610.0, 700.0, 850.0, 1200.0 };
 const int NBINS_topPt = 8; const double BINS_topPt[NBINS_topPt+1] = { 0.0, 60.0, 90.0, 125.0, 160.0, 200.0, 250.0, 330.0, 500.0 };
@@ -50,8 +51,8 @@ const int NBINS_deltaPhiTtbar = 8; const double BINS_deltaPhiTtbar[NBINS_deltaPh
 const int NBINS_deltaPhiTopZ = 8; const double BINS_deltaPhiTopZ[NBINS_deltaPhiTopZ+1] = { 0.0, TMath::Pi()/6, TMath::Pi()/3, TMath::Pi()/2, 2*TMath::Pi()/3, 3*TMath::Pi()/4, 5*TMath::Pi()/6, 11*TMath::Pi()/12, TMath::Pi() };
 const int NBINS_deltaRapTtbar = 8; const double BINS_deltaRapTtbar[NBINS_deltaRapTtbar+1] = { 0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.1, 3.0 };
 const int NBINS_deltaRapTopZ = 8; const double BINS_deltaRapTopZ[NBINS_deltaRapTopZ+1] = { 0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0 };
-const int NBINS_lepTopMass = 10; const double MIN_lepTopMass = 150.0; const double MAX_lepTopMass = 200.0;
-const int NBINS_hadTopMass = 10; const double MIN_hadTopMass = 150.0; const double MAX_hadTopMass = 200.0;
+const int NBINS_lepTopMass = 10; const double MIN_lepTopMass = 170.0; const double MAX_lepTopMass = 175.0;
+const int NBINS_hadTopMass = 10; const double MIN_hadTopMass = 170.0; const double MAX_hadTopMass = 175.0;
 const int NBINS_topLeptonPt = 8; const double MIN_topLeptonPt = 0.0; const double MAX_topLeptonPt = 250.0;
 const int NBINS_topLeptonsMass = 8; const double MIN_topLeptonsMass = 0.0; const double MAX_topLeptonsMass = 350.0;
 const int NBINS_fourLeptonsMass = 8; const double MIN_fourLeptonsMass = 100.0; const double MAX_fourLeptonsMass = 600.0;
@@ -98,6 +99,7 @@ ttZHistograms::ttZHistograms(int nVar, int nSel, int nSys) :
     hists_fourthJetPt(new TH1F*[nHistograms]),
     hists_fourthJetEta(new TH1F*[nHistograms]),
     hists_fourthJetPhi(new TH1F*[nHistograms]),
+    hists_zbosonPt(new TH1F*[nHistograms]),
     hists_ttzMass(new TH1F*[nHistograms]),
     hists_ttbarMass(new TH1F*[nHistograms]),
     hists_topPt(new TH1F*[nHistograms]),
@@ -152,6 +154,7 @@ ttZHistograms::ttZHistograms(int nVar, int nSel, int nSys) :
         hists_fourthJetPt[i] = new TH1F(("hist_fourthJetPt_var"+sI).c_str(), "", NBINS_fourthJetPt, MIN_fourthJetPt, MAX_fourthJetPt);
         hists_fourthJetEta[i] = new TH1F(("hist_fourthJetEta_var"+sI).c_str(), "", NBINS_fourthJetEta, MIN_fourthJetEta, MAX_fourthJetEta);
         hists_fourthJetPhi[i] = new TH1F(("hist_fourthJetPhi_var"+sI).c_str(), "", NBINS_fourthJetPhi, MIN_fourthJetPhi, MAX_fourthJetPhi);
+        hists_zbosonPt[i] = new TH1F(("hist_zbosonPt_var"+sI).c_str(), "", NBINS_zbosonPt, BINS_zbosonPt);
         hists_ttzMass[i] = new TH1F(("hist_ttzMass_var"+sI).c_str(), "", NBINS_ttzMass, BINS_ttzMass);
         hists_ttbarMass[i] = new TH1F(("hist_ttbarMass_var"+sI).c_str(), "", NBINS_ttbarMass, BINS_ttbarMass);
         hists_topPt[i] = new TH1F(("hist_topPt_var"+sI).c_str(), "", NBINS_topPt, BINS_topPt);
@@ -208,6 +211,7 @@ ttZHistograms::~ttZHistograms() {
         delete hists_fourthJetPt[i];
         delete hists_fourthJetEta[i];
         delete hists_fourthJetPhi[i];
+        delete hists_zbosonPt[i];
         delete hists_ttzMass[i];
         delete hists_ttbarMass[i];
         delete hists_topPt[i];
@@ -260,6 +264,7 @@ ttZHistograms::~ttZHistograms() {
     delete [] hists_fourthJetPt;
     delete [] hists_fourthJetEta;
     delete [] hists_fourthJetPhi;
+    delete [] hists_zbosonPt;
     delete [] hists_ttzMass;
     delete [] hists_ttbarMass;
     delete [] hists_topPt;
@@ -319,6 +324,7 @@ void ttZHistograms::SetValues(ttZ::leptonVariables leptonVars, ttZ::jetVariables
     value_fourthJetPt = IN_RANGE(jetVars.fourthJetPt, MIN_fourthJetPt, MAX_fourthJetPt);
     value_fourthJetEta = IN_RANGE(jetVars.fourthJetEta, MIN_fourthJetEta, MAX_fourthJetEta);
     value_fourthJetPhi = PHI_IN_RANGE(jetVars.fourthJetPhi);
+    value_zbosonPt = IN_RANGE(leptonVars.dilepPt, BINS_zbosonPt[0], BINS_zbosonPt[NBINS_zbosonPt]);
     value_ttzMass = IN_RANGE(reconstructedVars.ttzMass, BINS_ttzMass[0], BINS_ttzMass[NBINS_ttzMass]);
     value_ttbarMass = IN_RANGE(reconstructedVars.ttbarMass, BINS_ttbarMass[0], BINS_ttbarMass[NBINS_ttbarMass]);
     value_topPt = IN_RANGE(reconstructedVars.topPt, BINS_topPt[0], BINS_topPt[NBINS_topPt]);
@@ -378,6 +384,7 @@ void ttZHistograms::Fill(double weight, int histogram) {
     hists_fourthJetPt[histogram]->Fill(value_fourthJetPt, weight);
     hists_fourthJetEta[histogram]->Fill(value_fourthJetEta, weight);
     hists_fourthJetPhi[histogram]->Fill(value_fourthJetPhi, weight);
+    hists_zbosonPt[histogram]->Fill(value_zbosonPt, weight);
     hists_ttzMass[histogram]->Fill(value_ttzMass, weight);
     hists_ttbarMass[histogram]->Fill(value_ttbarMass, weight);
     hists_topPt[histogram]->Fill(value_topPt, weight);
@@ -397,57 +404,58 @@ void ttZHistograms::Fill(double weight, int histogram) {
 }
 
 void ttZHistograms::Write(TDirectory* directory) {
-    Write(directory, "category3l", hists_category3l);
-    Write(directory, "category4l", hists_category4l);
-    Write(directory, "nJets", hists_nJets);
-    Write(directory, "nBjets", hists_nBjets);
-    Write(directory, "dilepPt", hists_dilepPt);
-    Write(directory, "dilepEta", hists_dilepEta);
-    Write(directory, "dilepPhi", hists_dilepPhi);
-    Write(directory, "dilepMass3l", hists_dilepMass3l);
-    Write(directory, "dilepMass4l", hists_dilepMass4l);
-    Write(directory, "missingEt", hists_missingEt);
-    Write(directory, "missingPhi", hists_missingPhi);
-    Write(directory, "firstLepPt", hists_firstLepPt);
-    Write(directory, "firstLepEta", hists_firstLepEta);
-    Write(directory, "firstLepPhi", hists_firstLepPhi);
-    Write(directory, "secondLepPt", hists_secondLepPt);
-    Write(directory, "secondLepEta", hists_secondLepEta);
-    Write(directory, "secondLepPhi", hists_secondLepPhi);
-    Write(directory, "thirdLepPt", hists_thirdLepPt);
-    Write(directory, "thirdLepEta", hists_thirdLepEta);
-    Write(directory, "thirdLepPhi", hists_thirdLepPhi);
-    Write(directory, "fourthLepPt", hists_fourthLepPt);
-    Write(directory, "fourthLepEta", hists_fourthLepEta);
-    Write(directory, "fourthLepPhi", hists_fourthLepPhi);
-    Write(directory, "firstJetPt", hists_firstJetPt);
-    Write(directory, "firstJetEta", hists_firstJetEta);
-    Write(directory, "firstJetPhi", hists_firstJetPhi);
-    Write(directory, "secondJetPt", hists_secondJetPt);
-    Write(directory, "secondJetEta", hists_secondJetEta);
-    Write(directory, "secondJetPhi", hists_secondJetPhi);
-    Write(directory, "thirdJetPt", hists_thirdJetPt);
-    Write(directory, "thirdJetEta", hists_thirdJetEta);
-    Write(directory, "thirdJetPhi", hists_thirdJetPhi);
-    Write(directory, "fourthJetPt", hists_fourthJetPt);
-    Write(directory, "fourthJetEta", hists_fourthJetEta);
-    Write(directory, "fourthJetPhi", hists_fourthJetPhi);
-    Write(directory, "ttzMass", hists_ttzMass);
-    Write(directory, "ttbarMass", hists_ttbarMass);
-    Write(directory, "topPt", hists_topPt);
-    Write(directory, "deltaPhiTtbar", hists_deltaPhiTtbar);
-    Write(directory, "deltaPhiTopZ", hists_deltaPhiTopZ);
-    Write(directory, "deltaRapTtbar", hists_deltaRapTtbar);
-    Write(directory, "deltaRapTopZ", hists_deltaRapTopZ);
-    Write(directory, "lepTopMass", hists_lepTopMass);
-    Write(directory, "hadTopMass", hists_hadTopMass);
-    Write(directory, "topLeptonPt", hists_topLeptonPt);
-    Write(directory, "topLeptonsMass", hists_topLeptonsMass);
-    Write(directory, "fourLeptonsMass", hists_fourLeptonsMass);
-    Write(directory, "deltaPhiTopLeptons", hists_deltaPhiTopLeptons);
-    Write(directory, "deltaPhiTopLeptonZ", hists_deltaPhiTopLeptonZ);
-    Write(directory, "deltaRapTopLeptons", hists_deltaRapTopLeptons);
-    Write(directory, "deltaRapTopLeptonZ", hists_deltaRapTopLeptonZ);
+    Write(directory, "control_category3l", hists_category3l);
+    Write(directory, "control_category4l", hists_category4l);
+    Write(directory, "control_nJets", hists_nJets);
+    Write(directory, "control_nBjets", hists_nBjets);
+    Write(directory, "control_dilepPt", hists_dilepPt);
+    Write(directory, "control_dilepEta", hists_dilepEta);
+    Write(directory, "control_dilepPhi", hists_dilepPhi);
+    Write(directory, "control_dilepMass3l", hists_dilepMass3l);
+    Write(directory, "control_dilepMass4l", hists_dilepMass4l);
+    Write(directory, "control_missingEt", hists_missingEt);
+    Write(directory, "control_missingPhi", hists_missingPhi);
+    Write(directory, "control_firstLepPt", hists_firstLepPt);
+    Write(directory, "control_firstLepEta", hists_firstLepEta);
+    Write(directory, "control_firstLepPhi", hists_firstLepPhi);
+    Write(directory, "control_secondLepPt", hists_secondLepPt);
+    Write(directory, "control_secondLepEta", hists_secondLepEta);
+    Write(directory, "control_secondLepPhi", hists_secondLepPhi);
+    Write(directory, "control_thirdLepPt", hists_thirdLepPt);
+    Write(directory, "control_thirdLepEta", hists_thirdLepEta);
+    Write(directory, "control_thirdLepPhi", hists_thirdLepPhi);
+    Write(directory, "control_fourthLepPt", hists_fourthLepPt);
+    Write(directory, "control_fourthLepEta", hists_fourthLepEta);
+    Write(directory, "control_fourthLepPhi", hists_fourthLepPhi);
+    Write(directory, "control_firstJetPt", hists_firstJetPt);
+    Write(directory, "control_firstJetEta", hists_firstJetEta);
+    Write(directory, "control_firstJetPhi", hists_firstJetPhi);
+    Write(directory, "control_secondJetPt", hists_secondJetPt);
+    Write(directory, "control_secondJetEta", hists_secondJetEta);
+    Write(directory, "control_secondJetPhi", hists_secondJetPhi);
+    Write(directory, "control_thirdJetPt", hists_thirdJetPt);
+    Write(directory, "control_thirdJetEta", hists_thirdJetEta);
+    Write(directory, "control_thirdJetPhi", hists_thirdJetPhi);
+    Write(directory, "control_fourthJetPt", hists_fourthJetPt);
+    Write(directory, "control_fourthJetEta", hists_fourthJetEta);
+    Write(directory, "control_fourthJetPhi", hists_fourthJetPhi);
+    Write(directory, "reco_zbosonPt", hists_zbosonPt);
+    Write(directory, "reco3l_ttzMass", hists_ttzMass);
+    Write(directory, "reco3l_ttbarMass", hists_ttbarMass);
+    Write(directory, "reco3l_topPt", hists_topPt);
+    Write(directory, "reco3l_deltaPhiTtbar", hists_deltaPhiTtbar);
+    Write(directory, "reco3l_deltaPhiTopZ", hists_deltaPhiTopZ);
+    Write(directory, "reco3l_deltaRapTtbar", hists_deltaRapTtbar);
+    Write(directory, "reco3l_deltaRapTopZ", hists_deltaRapTopZ);
+    Write(directory, "reco3l_lepTopMass", hists_lepTopMass);
+    Write(directory, "reco3l_hadTopMass", hists_hadTopMass);
+    Write(directory, "reco4l_topLeptonPt", hists_topLeptonPt);
+    Write(directory, "reco4l_topLeptonsMass", hists_topLeptonsMass);
+    Write(directory, "reco4l_fourLeptonsMass", hists_fourLeptonsMass);
+    Write(directory, "reco4l_deltaPhiTopLeptons", hists_deltaPhiTopLeptons);
+    Write(directory, "reco4l_deltaPhiTopLeptonZ", hists_deltaPhiTopLeptonZ);
+    Write(directory, "reco4l_deltaRapTopLeptons", hists_deltaRapTopLeptons);
+    Write(directory, "reco4l_deltaRapTopLeptonZ", hists_deltaRapTopLeptonZ);
 }
 
 void ttZHistograms::Write(TDirectory* directory, std::string name, TH1F** hists) {

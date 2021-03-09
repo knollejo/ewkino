@@ -1,7 +1,7 @@
-DIR=plots/210303_214854
+DIR=plots/210308_142313
 mkdir -p $DIR
 ./controlPlots category3l 4 $DIR
-./controlPlots category4l 5 $DIR
+./controlPlots category4l 6 $DIR
 ./controlPlots nJets 6 $DIR
 ./controlPlots nBjets 3 $DIR
 ./controlPlots dilepPt 10 $DIR
@@ -35,6 +35,7 @@ mkdir -p $DIR
 ./controlPlots fourthJetPt 10 $DIR
 ./controlPlots fourthJetEta 10 $DIR
 ./controlPlots fourthJetPhi 10 $DIR
+./controlPlots zbosonPt 8 $DIR
 ./controlPlots ttzMass 8 $DIR
 ./controlPlots ttbarMass 8 $DIR
 ./controlPlots topPt 8 $DIR

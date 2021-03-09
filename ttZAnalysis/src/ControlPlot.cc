@@ -132,8 +132,6 @@ std::string ControlPlot::Print(int iYear, int iSel) {
         if(datay>ymax) ymax = datay;
     }
     output << "ymax = " << ymax << std::endl;
-    output << "add_first_plot = \"\"" << std::endl;
-    output << "add_second_plot = \"\"" << std::endl;
 
     // return result
     return output.str();

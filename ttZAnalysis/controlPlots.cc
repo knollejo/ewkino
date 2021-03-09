@@ -9,6 +9,7 @@
 #include "interface/ControlPlot.h"
 #include "interface/CrossSections.h"
 #include "interface/HistogramFile.h"
+#include "interface/PlotAxes.h"
 
 const int nYears = 3;
 const int nSamples = 7;
@@ -28,7 +29,7 @@ const int nSysData = 0;
 const int nSysBkgr = 126;
 const int nSysSgnl = 126;
 
-const std::string path = "output/210303_214854/";
+const std::string path = "output/210308_142313/";
 
 void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
 
@@ -459,7 +460,9 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
             std::ofstream out(fullpath);
             out << data << std::endl
                 << "filename = " << '"' << filename << '"' << std::endl
-                << "my_xlabel = " << '"' << obsname << '"' << std::endl
+                << "my_xlabel = " << '"' << get_xaxis_label(obsname) << '"' << std::endl
+                << "add_first_plot = " << '"' << get_xaxis_add_first(obsname) << '"' << std::endl
+                << "add_second_plot = " << '"' << get_xaxis_add_second(obsname) << '"' << std::endl
                 << "lumi = " << '"' << sLumi << '"' << std::endl
                 << "title = " << '"' << sTitle << '"' << std::endl
                 << "load " << '"' << "controlplotswithratio.plot" << '"' << std::endl;
