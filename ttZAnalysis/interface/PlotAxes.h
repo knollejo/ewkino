@@ -97,8 +97,8 @@ const std::map<std::string, std::string> XAXIS_ADD_FIRST({
     {"secondJetPhi", XAXIS_ADD_FIRST_PHI},
     {"thirdJetPhi", XAXIS_ADD_FIRST_PHI},
     {"fourthJetPhi", XAXIS_ADD_FIRST_PHI},
-    {"deltaPhiTopLeptons": "set xtics 0.25*pi;\\\n"},
-    {"deltaPhiTopLeptonZ": "set xtics 0.25*pi;\\\n"},
+    {"deltaPhiTopLeptons", "set xtics 0.25*pi;\\\n"},
+    {"deltaPhiTopLeptonZ", "set xtics 0.25*pi;\\\n"},
 });
 std::string get_xaxis_add_first(std::string obs) {
     auto found = XAXIS_ADD_FIRST.find(obs);
