@@ -56,11 +56,11 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
     //initialize histograms
     std::cout << "building histograms" << std::endl;
-    const int nVariants = is_ttZ ? 18 : is_data ? 2 : 3;
+    const int nVariants = is_ttZ ? 21 : is_data ? 2 : 3;
     const int nSelections = 3;
     const int nPdfVariations = 100;
     const int nSystematics = is_data ? 1 : 1+28+nPdfVariations;
-    ttZHistograms histograms(nVariants, nSelections, nSystematics);
+    ttZHistograms histograms(is_ttZ, nVariants, nSelections, nSystematics);
 
     //event loop
     std::cout << "event loop" << std::endl;
@@ -88,27 +88,32 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
             auto truthInfo = is_ttZ ? ttZ::evaluateTruthStatus(treeReader) : ttZ::ttzTruth();
             int iVariantShift = 0;
             if(is_ttZ) {
-                if(!truthInfo.hasLeptonicZ) iVariantShift = 15; // tt+nunu
-                else if(!truthInfo.isOnShell) iVariantShift = 12; // tt+ll off-shell
-                else if(truthInfo.hasTaus) iVariantShift = 9; // ttZ with tau in the decay
+                if(!truthInfo.hasLeptonicZ) iVariantShift = 18; // tt+nunu
+                else if(!truthInfo.isOnShell) iVariantShift = 15; // tt+ll off-shell
+                else if(truthInfo.hasTausInZ) iVariantShift = 12; // ttZ with tau in the Z decay
+                else if(truthInfo.hasTausInTops) iVariantShift = 9; // ttZ with tau in top decays
                 else if(truthInfo.nLeptons==4) iVariantShift = 0; // ttZ with 4 leptons
                 else if(truthInfo.nLeptons==3) iVariantShift = 3; // ttZ with 3 leptons
                 else if(truthInfo.nLeptons==2) iVariantShift = 6; // ttZ with 2 leptons
-                else iVariantShift = 15;
+                else iVariantShift = 18;
+                histograms.SetTruthValues(truthInfo);
             }
 
             //apply baseline selection
-            if( !ttZ::passBaselineSelection( event, true, true ) ) continue;
+            bool passed = ttZ::passBaselineSelection( event, true, true );
+            if( !passed && !is_ttZ ) continue;
 
             //apply lepton pT cuts
-            if( !ttZ::passPtCuts( event ) ) continue;
+            passed = passed && ttZ::passPtCuts( event );
+            if( !passed && !is_ttZ ) continue;
 
             //require triggers
-            if( !ttZ::passTriggerSelection( event ) ) continue;
-            if( !( event.passMetFilters() ) ) continue;
+            passed = passed && ttZ::passTriggerSelection( event ) && event.passMetFilters();
+            if( !passed && !is_ttZ ) continue;
 
             //require the right number of tight and FO(loose) leptons in 3(4) lepton events
-            if( !ttZ::passSelectionLNumber( event ) ) continue;
+            passed = passed && ttZ::passSelectionLNumber( event );
+            if( !passed && !is_ttZ ) continue;
 
             //require MC events to only contain prompt leptons
             bool is_prompt = true;
@@ -118,6 +123,7 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
 
             //apply scale-factors and reweighting
             double weight = event.weight();
+            const double genweight = weight;
             if( event.isMC() ){
                 weight *= reweighter.totalWeight( event );
             }
@@ -128,83 +134,84 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
                 is_tight = false;
                 weight *= ttZ::fakeRateWeight( event, frMapMuons, frMapElectrons );
             }
-            if( !is_data && !is_prompt && !is_tight ) continue;
+            if( !is_data && !is_prompt && !is_tight && !is_ttZ ) continue;
 
             //fill nominal histograms
             const int iVariant = is_data ? (is_tight ? 0 : 1)
                                : (is_prompt ? (is_tight ? 0 : 2) : 1)
                                + iVariantShift;
-            int passed_selection = ttZ::passSelectionTTZ( event, "nominal" );
-            if( passed_selection >= 0 ){
+            int passed_selection = passed ? ttZ::passSelectionTTZ( event, "nominal" ) : -1;
+            if( passed_selection>=0 || is_ttZ ){
 
-                auto lepVars = ttZ::computeLeptonVariables(event);
-                auto jetVars = ttZ::computeJetVariables(event, "nominal");
-                auto recVars = ttZ::performKinematicReconstruction(event, "nominal", fitter);
-                auto fourVars = ttZ::performFourLeptonsComputation(event);
-
-                histograms.SetValues(lepVars, jetVars, recVars, fourVars);
-                histograms.Fill(weight, iVariant, passed_selection, 0);
+                if(passed_selection>=0) {
+                    auto lepVars = ttZ::computeLeptonVariables(event);
+                    auto jetVars = ttZ::computeJetVariables(event, "nominal");
+                    auto recVars = ttZ::performKinematicReconstruction(event, "nominal", fitter);
+                    auto fourVars = ttZ::performFourLeptonsComputation(event);
+                    histograms.SetValues(lepVars, jetVars, recVars, fourVars);
+                }
+                histograms.Fill(iVariant, passed_selection, 0, weight, genweight);
 
                 //no uncertainties for data
                 if( event.isData() ) continue;
 
                 //fill scale variation histograms
                 const double weightScaleRenDown = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_0p5_MuF_1() : 1.0;
-                histograms.Fill(weight*weightScaleRenDown, iVariant, passed_selection, 7);
+                histograms.Fill(iVariant, passed_selection, 7, weight*weightScaleRenDown, genweight*weightScaleRenDown);
                 const double weightScaleRenUp = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_2_MuF_1() : 1.0;
-                histograms.Fill(weight*weightScaleRenUp, iVariant, passed_selection, 8);
+                histograms.Fill(iVariant, passed_selection, 8, weight*weightScaleRenUp, genweight*weightScaleRenUp);
                 const double weightScaleFacDown = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_1_MuF_0p5() : 1.0;
-                histograms.Fill(weight*weightScaleFacDown, iVariant, passed_selection, 9);
+                histograms.Fill(iVariant, passed_selection, 9, weight*weightScaleFacDown, genweight*weightScaleFacDown);
                 const double weightScaleFacUp = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_1_MuF_2() : 1.0;
-                histograms.Fill(weight*weightScaleFacUp, iVariant, passed_selection, 10);
+                histograms.Fill(iVariant, passed_selection, 10, weight*weightScaleFacUp, genweight*weightScaleFacUp);
                 const double weightScaleBothDown = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_0p5_MuF_0p5() : 1.0;
-                histograms.Fill(weight*weightScaleBothDown, iVariant, passed_selection, 11);
+                histograms.Fill(iVariant, passed_selection, 11, weight*weightScaleBothDown, genweight*weightScaleBothDown);
                 const double weightScaleBothUp = sampleHasPdfAndScale ? event.generatorInfo().relativeWeight_MuR_2_MuF_2() : 1.0;
-                histograms.Fill(weight*weightScaleBothUp, iVariant, passed_selection, 12);
+                histograms.Fill(iVariant, passed_selection, 12, weight*weightScaleBothUp, genweight*weightScaleBothUp);
 
                 //fill pdf histograms
                 for( unsigned pdf_i = 0; pdf_i < nPdfVariations; ++pdf_i){
                     const double weightPdf = sampleHasPdfAndScale ? event.generatorInfo().relativeWeightPdfVar(pdf_i) : 1.;
-                    histograms.Fill(weight*weightPdf, iVariant, passed_selection, 27+pdf_i);
+                    histograms.Fill(iVariant, passed_selection, 27+pdf_i, weight*weightPdf, genweight*weightPdf);
                 }
 
                 //fill pileup histograms
                 double weightPileupDown = reweighter[ "pileup" ]->weightDown( event ) / reweighter[ "pileup" ]->weight( event );
                 if ( std::isnan(weightPileupDown) ) weightPileupDown = 0.;
-                histograms.Fill(weight*weightPileupDown, iVariant, passed_selection, 13);
+                histograms.Fill(iVariant, passed_selection, 13, weight*weightPileupDown, genweight*weightPileupDown);
                 double weightPileupUp = reweighter[ "pileup" ]->weightUp( event ) / reweighter[ "pileup" ]->weight( event );
                 if ( std::isnan(weightPileupUp) ) weightPileupUp = 0.;
-                histograms.Fill(weight*weightPileupUp, iVariant, passed_selection, 14);
+                histograms.Fill(iVariant, passed_selection, 14, weight*weightPileupUp, genweight*weightPileupUp);
 
                 //fill b-tag histograms
                 const double weightBTagHeavyDown = reweighter[ "bTag_heavy" ]->weightDown( event ) / reweighter[ "bTag_heavy" ]->weight( event );
-                histograms.Fill(weight*weightBTagHeavyDown, iVariant, passed_selection, 15);
+                histograms.Fill(iVariant, passed_selection, 15, weight*weightBTagHeavyDown, genweight*weightBTagHeavyDown);
                 const double weightBTagHeavyUp = reweighter[ "bTag_heavy" ]->weightUp( event ) / reweighter[ "bTag_heavy" ]->weight( event );
-                histograms.Fill(weight*weightBTagHeavyUp, iVariant, passed_selection, 16);
+                histograms.Fill(iVariant, passed_selection, 16, weight*weightBTagHeavyUp, genweight*weightBTagHeavyUp);
                 const double weightBTagLightDown = reweighter[ "bTag_light" ]->weightDown( event ) / reweighter[ "bTag_light" ]->weight( event );
-                histograms.Fill(weight*weightBTagLightDown, iVariant, passed_selection, 17);
+                histograms.Fill(iVariant, passed_selection, 17, weight*weightBTagLightDown, genweight*weightBTagLightDown);
                 const double weightBTagLightUp = reweighter[ "bTag_light" ]->weightUp( event ) / reweighter[ "bTag_light" ]->weight( event );
-                histograms.Fill(weight*weightBTagLightUp, iVariant, passed_selection, 18);
+                histograms.Fill(iVariant, passed_selection, 18, weight*weightBTagLightUp, genweight*weightBTagLightUp);
 
                 //fill prefiring histograms
                 const double weightPrefireDown = reweighter[ "prefire" ]->weightDown( event ) / reweighter[ "prefire" ]->weight( event );
-                histograms.Fill(weight*weightPrefireDown, iVariant, passed_selection, 19);
+                histograms.Fill(iVariant, passed_selection, 19, weight*weightPrefireDown, genweight*weightPrefireDown);
                 const double weightPrefireUp = reweighter[ "prefire" ]->weightUp( event ) / reweighter[ "prefire" ]->weight( event );
-                histograms.Fill(weight*weightPrefireUp, iVariant, passed_selection, 20);
+                histograms.Fill(iVariant, passed_selection, 20, weight*weightPrefireUp, genweight*weightPrefireUp);
 
                 //fill lepton histograms
                 const double leptonIDWeightDownMuon = reweighter[ "muonID" ]->weightDown( event ) / reweighter[ "muonID" ]->weight( event );
-                histograms.Fill(weight*leptonIDWeightDownMuon, iVariant, passed_selection, 21);
+                histograms.Fill(iVariant, passed_selection, 21, weight*leptonIDWeightDownMuon, genweight*leptonIDWeightDownMuon);
                 const double leptonIDWeightUpMuon = reweighter[ "muonID" ]->weightUp( event ) / reweighter[ "muonID" ]->weight( event );
-                histograms.Fill(weight*leptonIDWeightUpMuon, iVariant, passed_selection, 22);
+                histograms.Fill(iVariant, passed_selection, 22, weight*leptonIDWeightUpMuon, genweight*leptonIDWeightUpMuon);
                 const double recoWeightDownElec = reweighter[ "electronReco_pTBelow20" ]->weightDown( event ) * reweighter[ "electronReco_pTAbove20" ]->weightDown( event ) / ( reweighter[ "electronReco_pTBelow20" ]->weight( event ) * reweighter[ "electronReco_pTAbove20" ]->weight( event ) );
-                histograms.Fill(weight*recoWeightDownElec, iVariant, passed_selection, 23);
+                histograms.Fill(iVariant, passed_selection, 23, weight*recoWeightDownElec, genweight*recoWeightDownElec);
                 const double recoWeightUpElec = reweighter[ "electronReco_pTBelow20" ]->weightUp( event ) * reweighter[ "electronReco_pTAbove20" ]->weightUp( event ) / ( reweighter[ "electronReco_pTBelow20" ]->weight( event ) * reweighter[ "electronReco_pTAbove20" ]->weight( event ) );
-                histograms.Fill(weight*recoWeightUpElec, iVariant, passed_selection, 24);
+                histograms.Fill(iVariant, passed_selection, 24, weight*recoWeightUpElec, genweight*recoWeightUpElec);
                 const double leptonIDWeightDownElec = reweighter[ "electronID" ]->weightDown( event ) / reweighter[ "electronID" ]->weight( event );
-                histograms.Fill(weight*leptonIDWeightDownElec, iVariant, passed_selection, 25);
+                histograms.Fill(iVariant, passed_selection, 25, weight*leptonIDWeightDownElec, genweight*leptonIDWeightDownElec);
                 const double leptonIDWeightUpElec = reweighter[ "electronID" ]->weightUp( event ) / reweighter[ "electronID" ]->weight( event );
-                histograms.Fill(weight*leptonIDWeightUpElec, iVariant, passed_selection, 26);
+                histograms.Fill(iVariant, passed_selection, 26, weight*leptonIDWeightUpElec, genweight*leptonIDWeightUpElec);
 
             }
 
@@ -212,86 +219,97 @@ void analyze( const std::string& year, const std::string& sampleDirectoryPath , 
             if( event.isData() ) continue;
 
             //fill JEC down histograms
-            passed_selection = ttZ::passSelectionTTZ( event, "JECDown" );
-            if( passed_selection >= 0 ){
+            passed_selection = passed ? ttZ::passSelectionTTZ( event, "JECDown" ) : -1;
+            if( passed_selection>=0 || is_ttZ ){
 
-                auto lepVars = ttZ::computeLeptonVariables(event);
-                auto jetVars = ttZ::computeJetVariables(event, "JECDown");
-                auto recVars = ttZ::performKinematicReconstruction(event, "JECDown", fitter);
-                auto fourVars = ttZ::performFourLeptonsComputation(event);
-
-                histograms.SetValues(lepVars, jetVars, recVars, fourVars);
-                histograms.Fill(weight, iVariant, passed_selection, 1);
+                if(passed_selection>=0) {
+                    auto lepVars = ttZ::computeLeptonVariables(event);
+                    auto jetVars = ttZ::computeJetVariables(event, "JECDown");
+                    auto recVars = ttZ::performKinematicReconstruction(event, "JECDown", fitter);
+                    auto fourVars = ttZ::performFourLeptonsComputation(event);
+                    histograms.SetValues(lepVars, jetVars, recVars, fourVars);
+                }
+                histograms.Fill(iVariant, passed_selection, 1, weight, genweight);
 
             }
 
             //fill JEC up histograms
             passed_selection = ttZ::passSelectionTTZ( event, "JECUp" );
-            if( passed_selection >= 0 ){
+            passed = passed && passed_selection >= 0;
+            if( passed_selection>=0 || is_ttZ ){
 
-                auto lepVars = ttZ::computeLeptonVariables(event);
-                auto jetVars = ttZ::computeJetVariables(event, "JECUp");
-                auto recVars = ttZ::performKinematicReconstruction(event, "JECUp", fitter);
-                auto fourVars = ttZ::performFourLeptonsComputation(event);
-
-                histograms.SetValues(lepVars, jetVars, recVars, fourVars);
-                histograms.Fill(weight, iVariant, passed_selection, 2);
+                if(passed_selection>=0) {
+                    auto lepVars = ttZ::computeLeptonVariables(event);
+                    auto jetVars = ttZ::computeJetVariables(event, "JECUp");
+                    auto recVars = ttZ::performKinematicReconstruction(event, "JECUp", fitter);
+                    auto fourVars = ttZ::performFourLeptonsComputation(event);
+                    histograms.SetValues(lepVars, jetVars, recVars, fourVars);
+                }
+                histograms.Fill(iVariant, passed_selection, 2, weight, genweight);
 
             }
 
             //fill JER down histograms
             passed_selection = ttZ::passSelectionTTZ( event, "JERDown" );
-            if( passed_selection >= 0 ){
+            passed = passed && passed_selection >= 0;
+            if( passed_selection>=0 || is_ttZ ){
 
-                auto lepVars = ttZ::computeLeptonVariables(event);
-                auto jetVars = ttZ::computeJetVariables(event, "JERDown");
-                auto recVars = ttZ::performKinematicReconstruction(event, "JERDown", fitter);
-                auto fourVars = ttZ::performFourLeptonsComputation(event);
-
-                histograms.SetValues(lepVars, jetVars, recVars, fourVars);
-                histograms.Fill(weight, iVariant, passed_selection, 3);
+                if(passed_selection>=0) {
+                    auto lepVars = ttZ::computeLeptonVariables(event);
+                    auto jetVars = ttZ::computeJetVariables(event, "JERDown");
+                    auto recVars = ttZ::performKinematicReconstruction(event, "JERDown", fitter);
+                    auto fourVars = ttZ::performFourLeptonsComputation(event);
+                    histograms.SetValues(lepVars, jetVars, recVars, fourVars);
+                }
+                histograms.Fill(iVariant, passed_selection, 3, weight, genweight);
 
             }
 
             //fill JER up histograms
             passed_selection = ttZ::passSelectionTTZ( event, "JERUp" );
-            if( passed_selection >= 0 ){
+            passed = passed && passed_selection >= 0;
+            if( passed_selection>=0 || is_ttZ ){
 
-                auto lepVars = ttZ::computeLeptonVariables(event);
-                auto jetVars = ttZ::computeJetVariables(event, "JERUp");
-                auto recVars = ttZ::performKinematicReconstruction(event, "JERUp", fitter);
-                auto fourVars = ttZ::performFourLeptonsComputation(event);
-
-                histograms.SetValues(lepVars, jetVars, recVars, fourVars);
-                histograms.Fill(weight, iVariant, passed_selection, 4);
+                if(passed_selection>=0) {
+                    auto lepVars = ttZ::computeLeptonVariables(event);
+                    auto jetVars = ttZ::computeJetVariables(event, "JERUp");
+                    auto recVars = ttZ::performKinematicReconstruction(event, "JERUp", fitter);
+                    auto fourVars = ttZ::performFourLeptonsComputation(event);
+                    histograms.SetValues(lepVars, jetVars, recVars, fourVars);
+                }
+                histograms.Fill(iVariant, passed_selection, 4, weight, genweight);
 
             }
 
             //fill unclustered down histograms
             passed_selection = ttZ::passSelectionTTZ( event, "UnclDown" );
-            if( passed_selection >= 0 ){
+            passed = passed && passed_selection >= 0;
+            if( passed_selection>=0 || is_ttZ ){
 
-                auto lepVars = ttZ::computeLeptonVariables(event);
-                auto jetVars = ttZ::computeJetVariables(event, "UnclDown");
-                auto recVars = ttZ::performKinematicReconstruction(event, "UnclDown", fitter);
-                auto fourVars = ttZ::performFourLeptonsComputation(event);
-
-                histograms.SetValues(lepVars, jetVars, recVars, fourVars);
-                histograms.Fill(weight, iVariant, passed_selection, 5);
+                if(passed_selection>=0) {
+                    auto lepVars = ttZ::computeLeptonVariables(event);
+                    auto jetVars = ttZ::computeJetVariables(event, "UnclDown");
+                    auto recVars = ttZ::performKinematicReconstruction(event, "UnclDown", fitter);
+                    auto fourVars = ttZ::performFourLeptonsComputation(event);
+                    histograms.SetValues(lepVars, jetVars, recVars, fourVars);
+                }
+                histograms.Fill(iVariant, passed_selection, 5, weight, genweight);
 
             }
 
             //fill unclustered up histograms
             passed_selection = ttZ::passSelectionTTZ( event, "UnclUp" );
-            if( passed_selection >= 0 ){
+            passed = passed && passed_selection >= 0;
+            if( passed_selection>=0 || is_ttZ ){
 
-                auto lepVars = ttZ::computeLeptonVariables(event);
-                auto jetVars = ttZ::computeJetVariables(event, "UnclUp");
-                auto recVars = ttZ::performKinematicReconstruction(event, "UnclUp", fitter);
-                auto fourVars = ttZ::performFourLeptonsComputation(event);
-
-                histograms.SetValues(lepVars, jetVars, recVars, fourVars);
-                histograms.Fill(weight, iVariant, passed_selection, 6);
+                if(passed_selection>=0) {
+                    auto lepVars = ttZ::computeLeptonVariables(event);
+                    auto jetVars = ttZ::computeJetVariables(event, "UnclUp");
+                    auto recVars = ttZ::performKinematicReconstruction(event, "UnclUp", fitter);
+                    auto fourVars = ttZ::performFourLeptonsComputation(event);
+                    histograms.SetValues(lepVars, jetVars, recVars, fourVars);
+                }
+                histograms.Fill(iVariant, passed_selection, 6, weight, genweight);
 
             }
 

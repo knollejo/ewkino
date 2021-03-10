@@ -2,66 +2,92 @@
 #define ttZHistograms_H
 
 //include c++ library classes
+#include <functional>
 #include <string>
 
 //include ROOT classes
 #include "TDirectory.h"
 #include "TMath.h"
 #include "TH1.h"
+#include "TH2.h"
 
 //include ttZ specific code
+#include "ttZTruth.h"
 #include "ttZVariables.h"
 
-class ttZHistograms {
+class MyHistogram {
 public:
-    ttZHistograms(int, int, int);
+    MyHistogram(std::string, int, int, int, std::function<TH1F*(std::string)>);
+    virtual ~MyHistogram();
+
+    void SetValue(double v) { value = v; }
+    virtual void Fill(int, int, int, double);
+    virtual void Write(TDirectory*, std::string);
+    virtual void Write(TDirectory* directory, std::string dirname, std::string) { Write(directory, dirname); }
+
+protected:
+    std::string name;
+    const int nVariants, nSelections, nSystematics;
+    const int nHistograms;
+    TH1F** hists;
+    double value;
+};
+
+class MyTruthHistogram : public MyHistogram {
+public:
+    MyTruthHistogram(std::string, int, int, int, std::function<TH1F*(std::string)>, std::function<TH1F*(std::string)>, std::function<TH2F*(std::string)>);
+    virtual ~MyTruthHistogram();
+
+    void SetTruthValue(double g) { genvalue = g; }
+    virtual void Fill(int, int, int, double, double);
+    virtual void Write(TDirectory*, std::string, std::string);
+
+protected:
+    const int nGenHistograms;
+    TH1F** gens, ** fails;
+    TH2F** responses;
+    double genvalue;
+};
+
+
+class ttZHistograms {
+protected:
+    MyHistogram* makeHistogram(std::string, int, int, int, int, double, double);
+    MyHistogram* makeHistogram(std::string, int, int, int, int, const double*);
+    MyHistogram* makeTruthHistogram(std::string, bool, int, int, int, int, double, double);
+    MyHistogram* makeTruthHistogram(std::string, bool, int, int, int, int, const double*);
+
+public:
+    ttZHistograms(bool, int, int, int);
     virtual ~ttZHistograms();
 
     void SetValues(ttZ::leptonVariables, ttZ::jetVariables, ttZ::reconstructedVariables, ttZ::fourLeptonVariables);
-    void Fill(double, int, int, int);
+    void SetTruthValues(ttZ::ttzTruth);
+    void Fill(int, int, int, double, double);
 
     void Write(TDirectory*);
 
 protected:
-    void Fill(double, int);
-    void Write(TDirectory*, std::string, TH1F**);
-
-    const int nVariants, nSelections, nSystematics;
-    const int nHistograms;
-    TH1F** hists_category3l=nullptr, ** hists_category4l=nullptr,
-        ** hists_nJets=nullptr, ** hists_nBjets=nullptr,
-        ** hists_dilepPt=nullptr, ** hists_dilepEta=nullptr, ** hists_dilepPhi=nullptr, ** hists_dilepMass3l=nullptr, ** hists_dilepMass4l=nullptr,
-        ** hists_missingEt=nullptr, ** hists_missingPhi=nullptr,
-        ** hists_firstLepPt=nullptr, ** hists_firstLepEta=nullptr, ** hists_firstLepPhi=nullptr,
-        ** hists_secondLepPt=nullptr, ** hists_secondLepEta=nullptr, ** hists_secondLepPhi=nullptr,
-        ** hists_thirdLepPt=nullptr, ** hists_thirdLepEta=nullptr, ** hists_thirdLepPhi=nullptr,
-        ** hists_fourthLepPt=nullptr, ** hists_fourthLepEta=nullptr, ** hists_fourthLepPhi=nullptr,
-        ** hists_firstJetPt=nullptr, ** hists_firstJetEta=nullptr, ** hists_firstJetPhi=nullptr,
-        ** hists_secondJetPt=nullptr, ** hists_secondJetEta=nullptr, ** hists_secondJetPhi=nullptr,
-        ** hists_thirdJetPt=nullptr, ** hists_thirdJetEta=nullptr, ** hists_thirdJetPhi=nullptr,
-        ** hists_fourthJetPt=nullptr, ** hists_fourthJetEta=nullptr, ** hists_fourthJetPhi=nullptr,
-        ** hists_ttzMass=nullptr, ** hists_ttbarMass=nullptr, ** hists_topPt=nullptr,
-        ** hists_deltaPhiTtbar=nullptr, ** hists_deltaPhiTopZ=nullptr, ** hists_deltaRapTtbar=nullptr, ** hists_deltaRapTopZ=nullptr,
-        ** hists_lepTopMass=nullptr, ** hists_hadTopMass=nullptr,
-        ** hists_topLeptonPt=nullptr, ** hists_topLeptonsMass=nullptr, ** hists_fourLeptonsMass=nullptr,
-        ** hists_deltaPhiTopLeptons=nullptr, ** hists_deltaPhiTopLeptonZ=nullptr, ** hists_deltaRapTopLeptons=nullptr, ** hists_deltaRapTopLeptonZ=nullptr;
-    int value_category3l, value_category4l,
-        value_nJets, value_nBjets;
-    double value_dilepPt, value_dilepEta, value_dilepPhi, value_dilepMass3l, value_dilepMass4l,
-           value_missingEt, value_missingPhi,
-           value_firstLepPt, value_firstLepEta, value_firstLepPhi,
-           value_secondLepPt, value_secondLepEta, value_secondLepPhi,
-           value_thirdLepPt, value_thirdLepEta, value_thirdLepPhi,
-           value_fourthLepPt, value_fourthLepEta, value_fourthLepPhi,
-           value_firstJetPt, value_firstJetEta, value_firstJetPhi,
-           value_secondJetPt, value_secondJetEta, value_secondJetPhi,
-           value_thirdJetPt, value_thirdJetEta, value_thirdJetPhi,
-           value_fourthJetPt, value_fourthJetEta, value_fourthJetPhi,
-           value_ttzMass, value_ttbarMass, value_topPt,
-           value_deltaPhiTtbar, value_deltaPhiTopZ, value_deltaRapTtbar, value_deltaRapTopZ,
-           value_lepTopMass, value_hadTopMass,
-           value_topLeptonPt, value_topLeptonsMass, value_fourLeptonsMass,
-           value_deltaPhiTopLeptons, value_deltaPhiTopLeptonZ, value_deltaRapTopLeptons, value_deltaRapTopLeptonZ;
+    const bool is_ttz;
+    std::vector<MyHistogram*> hists;
+    std::vector<MyTruthHistogram*> truthhists;
+    MyHistogram* category3l=nullptr, * category4l=nullptr,
+               * nJets=nullptr, * nBjets=nullptr,
+               * dilepPt=nullptr, * dilepEta=nullptr, * dilepPhi=nullptr, * dilepMass3l=nullptr, * dilepMass4l=nullptr,
+               * missingEt=nullptr, * missingPhi=nullptr,
+               * firstLepPt=nullptr, * firstLepEta=nullptr, * firstLepPhi=nullptr,
+               * secondLepPt=nullptr, * secondLepEta=nullptr, * secondLepPhi=nullptr,
+               * thirdLepPt=nullptr, * thirdLepEta=nullptr, * thirdLepPhi=nullptr,
+               * fourthLepPt=nullptr, * fourthLepEta=nullptr, * fourthLepPhi=nullptr,
+               * firstJetPt=nullptr, * firstJetEta=nullptr, * firstJetPhi=nullptr,
+               * secondJetPt=nullptr, * secondJetEta=nullptr, * secondJetPhi=nullptr,
+               * thirdJetPt=nullptr, * thirdJetEta=nullptr, * thirdJetPhi=nullptr,
+               * fourthJetPt=nullptr, * fourthJetEta=nullptr, * fourthJetPhi=nullptr,
+               * lepTopMass=nullptr, * hadTopMass=nullptr,
+               * zbosonPt=nullptr, * ttzMass=nullptr, * ttbarMass=nullptr, * topPt=nullptr,
+               * deltaPhiTtbar=nullptr, * deltaPhiTopZ=nullptr, * deltaRapTtbar=nullptr, * deltaRapTopZ=nullptr,
+               * topLeptonPt=nullptr, * topLeptonsMass=nullptr, * fourLeptonsMass=nullptr,
+               * deltaPhiTopLeptons=nullptr, * deltaPhiTopLeptonZ=nullptr, * deltaRapTopLeptons=nullptr, * deltaRapTopLeptonZ=nullptr;
 };
 
 #endif

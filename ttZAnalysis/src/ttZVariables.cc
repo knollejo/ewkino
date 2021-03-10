@@ -6,11 +6,11 @@
 
 //include ROOT classes
 #include "TLorentzVector.h"
-#include "TMath.h"
-#include "TVector2.h"
 
 //include other parts of framework
+#include "../interface/ttZObservables.h"
 #include "../interface/ttZSelection.h"
+
 
 ttZ::leptonVariables ttZ::computeLeptonVariables(Event& event) {
     const bool isThreeLeptons = event.numberOfLeptons()==3;
@@ -117,16 +117,6 @@ struct FitResult {
     unsigned int iJets[4];
     TLorentzVector lvLepton, lvNeutrino, lvJets[4];
 };
-
-double deltaPhi(double phi1, double phi2) {
-    const double dphi = phi1-phi2;
-    if(isnan(dphi)) return -999.0;
-    else return TMath::Abs(TVector2::Phi_mpi_pi(dphi));
-}
-
-double deltaRap(double rap1, double rap2) {
-    return TMath::Abs(rap1-rap2);
-}
 
 ttZ::reconstructedVariables ttZ::performKinematicReconstruction(Event& event, const std::string& unc, KinFitter* fitter) {
     // no reconstruction for four-lepton events

@@ -3,8 +3,11 @@
 #include <cmath>
 #include <vector>
 
+#include "TLorentzVector.h"
+
 #include "../../constants/particleMasses.h"
 #include "../interface/GenParticleHelper.h"
+#include "../interface/ttZObservables.h"
 
 ttZ::ttzTruth ttZ::evaluateTruthStatus(TreeReader& reader) {
     // initialize GenParticleHelper
@@ -30,14 +33,37 @@ ttZ::ttzTruth ttZ::evaluateTruthStatus(TreeReader& reader) {
     const bool topquarks_are_semileptonic = has_topquarks ? geninfo.is_lepton(topquark.w2) != geninfo.is_lepton(topantiquark.w2) : false;
     TLorentzVector lvTop = has_topquarks ? geninfo.lv(topquark.t) : TLorentzVector();
     TLorentzVector lvAntitop = has_topquarks ? geninfo.lv(topantiquark.t) : TLorentzVector();
+    TLorentzVector lvTopLepton = topquarks_are_dileptonic ? geninfo.lv(topquark.w2) : TLorentzVector();
+    TLorentzVector lvAntitopLepton = topquarks_are_dileptonic ? geninfo.lv(topantiquark.w2) : TLorentzVector();
+
+    // compute observables
+    const double zbosonPt = lvZ.Pt();
+    const double ttzMass = (lvZ+lvTop+lvAntitop).M();
+    const double ttbarMass = (lvTop+lvAntitop).M();
+    const double topPt = lvTop.Pt();
+    const double deltaPhiTtbar = deltaPhi(lvTop.Phi(), lvAntitop.Phi());
+    const double deltaPhiTopZ = deltaPhi(lvTop.Phi(), lvZ.Phi());
+    const double deltaRapTtbar = deltaRap(lvTop.Rapidity(), lvAntitop.Rapidity());
+    const double deltaRapTopZ = deltaRap(lvTop.Rapidity(), lvZ.Rapidity());
+    const double topLeptonPt = topquarks_are_dileptonic ? lvTopLepton.Pt() : -999.0;
+    const double topLeptonsMass = topquarks_are_dileptonic ? (lvTopLepton+lvAntitopLepton).M() : -999.0;
+    const double fourLeptonsMass = topquarks_are_dileptonic ? (lvTopLepton+lvAntitopLepton+lvZ).Pt() : -999.0;
+    const double deltaPhiTopLeptons = topquarks_are_dileptonic ? deltaPhi(lvTopLepton.Phi(), lvAntitopLepton.Phi()) : -999.0;
+    const double deltaPhiTopLeptonZ = topquarks_are_dileptonic ? deltaPhi(lvTopLepton.Phi(), lvZ.Phi()) : -999.0;
+    const double deltaRapTopLeptons = topquarks_are_dileptonic ? deltaRap(lvTopLepton.Rapidity(), lvAntitopLepton.Rapidity()) : -999.0;
+    const double deltaRapTopLeptonZ = topquarks_are_dileptonic ? deltaRap(lvTopLepton.Rapidity(), lvZ.Rapidity()) : -999.0;
 
     // prepare return value
-    const bool isOnShell = is_onshell_zboson;
-    const bool hasLeptonicZ = zboson_decays_leptonic;
-    const bool hasTaus = zboson_has_taus || topquarks_have_taus;
-    const int nLeptons = (zboson_decays_leptonic ? 2 : 0)+(topquarks_are_dileptonic ? 2 : topquarks_are_semileptonic ? 1 : 0);
     return ttzTruth(
-        isOnShell, hasLeptonicZ, hasTaus, nLeptons,
-        lvZ, lvTop, lvAntitop
+        is_onshell_zboson,
+        zboson_decays_leptonic,
+        zboson_has_taus,
+        topquarks_have_taus,
+        (zboson_decays_leptonic ? 2 : 0)+(topquarks_are_dileptonic ? 2 : topquarks_are_semileptonic ? 1 : 0),
+        zbosonPt,
+        ttzMass, ttbarMass, topPt,
+        deltaPhiTtbar, deltaPhiTopZ, deltaRapTtbar, deltaRapTopZ,
+        topLeptonPt, topLeptonsMass, fourLeptonsMass,
+        deltaPhiTopLeptons, deltaPhiTopLeptonZ, deltaRapTopLeptons, deltaRapTopLeptonZ
     );
 }
