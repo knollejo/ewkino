@@ -241,7 +241,7 @@ std::string GenHistogramCombiner::PrintResponse(int iYear, int iDef) {
     output << "nBinsRec = " << nBinsY << std::endl;
     output << "nBinsGen = " << nBinsX << std::endl;
     output << "binsRec = '(";
-    for(int iBinY=0; iBinY<nBinsY; iBinY++) {
+    for(int iBinY=0; iBinY<nBinsY; iBinY+=2) {
         output << '"' << binBoundaries[1][iBinY] << "\" " << iBinY-0.5 << ", ";
     }
     output << '"' << binBoundaries[1][nBinsY] << "\" " << nBinsY-0.5 << ")'" << std::endl;

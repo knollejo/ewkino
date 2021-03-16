@@ -103,11 +103,6 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ttZ_2017.values[18], 1, i_ttZneutrinos, false);
     plot.AddSample(ttZ_2018.values[18], 2, i_ttZneutrinos, false);
     for(int iCat=0; iCat<7; iCat++) {
-        plot.AddSample(ttZ_2016.values[iCat*3], 0, i_data, true);
-        plot.AddSample(ttZ_2017.values[iCat*3], 1, i_data, true);
-        plot.AddSample(ttZ_2018.values[iCat*3], 2, i_data, true);
-    }
-    for(int iCat=0; iCat<7; iCat++) {
         plot.AddSample(ttZ_2016.values[iCat*3+2], 0, i_nonprompt, false, -1.0);
         plot.AddSample(ttZ_2017.values[iCat*3+2], 1, i_nonprompt, false, -1.0);
         plot.AddSample(ttZ_2018.values[iCat*3+2], 2, i_nonprompt, false, -1.0);
