@@ -5,6 +5,7 @@ weights/weightFiles/pileupWeights/*.root
 ttZAnalysis/frMaps/
 ttZAnalysis/plots/
 ttZAnalysis/controlPlots
+ttZAnalysis/responseMatrices
 ttZAnalysis/ttZAnalysis
 rsync-*
 submit.sh*

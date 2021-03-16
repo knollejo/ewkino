@@ -4,22 +4,9 @@
 
 #include "../interface/HistogramCombiner.h"
 
-HistogramCombiner::HistogramCombiner(int nSel, int nGrp, int nBin) :
-    nSelections(nSel), nGroups(nGrp), nBins(nBin),
-    binCenters(new double[nBins]), binBoundaries(new double[nBins+1])
-{}
-
-HistogramCombiner::~HistogramCombiner() {
-    delete [] binCenters;
-    delete [] binBoundaries;
-}
-
 void HistogramCombiner::SetBins(double* centers, double* boundaries) {
-    for(int iBin=0; iBin<nBins; iBin++) {
-        binCenters[iBin] = centers[iBin];
-        binBoundaries[iBin] = boundaries[iBin];
-    }
-    binBoundaries[nBins] = boundaries[nBins];
+    binCenters = centers;
+    binBoundaries = boundaries;
 }
 
 void HistogramCombiner::AddSample(double*** values, int year, int group, bool is_data, double weight) {

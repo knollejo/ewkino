@@ -1,54 +1,54 @@
-DIR=plots/210308_142313
+DIR=plots/210315_095935
 mkdir -p $DIR
-./controlPlots category3l 4 $DIR
-./controlPlots category4l 6 $DIR
-# ./controlPlots nJets 6 $DIR
-# ./controlPlots nBjets 3 $DIR
-# ./controlPlots dilepPt 10 $DIR
-# ./controlPlots dilepEta 12 $DIR
-# ./controlPlots dilepPhi 10 $DIR
-# ./controlPlots dilepMass3l 10 $DIR
-# ./controlPlots dilepMass4l 10 $DIR
-# ./controlPlots missingEt 11 $DIR
-# ./controlPlots missingPhi 10 $DIR
-# ./controlPlots firstLepPt 10 $DIR
-# ./controlPlots firstLepEta 10 $DIR
-# ./controlPlots firstLepPhi 10 $DIR
-# ./controlPlots secondLepPt 10 $DIR
-# ./controlPlots secondLepEta 10 $DIR
-# ./controlPlots secondLepPhi 10 $DIR
-# ./controlPlots thirdLepPt 10 $DIR
-# ./controlPlots thirdLepEta 10 $DIR
-# ./controlPlots thirdLepPhi 10 $DIR
-# ./controlPlots fourthLepPt 10 $DIR
-# ./controlPlots fourthLepEta 10 $DIR
-# ./controlPlots fourthLepPhi 10 $DIR
-# ./controlPlots firstJetPt 10 $DIR
-# ./controlPlots firstJetEta 10 $DIR
-# ./controlPlots firstJetPhi 10 $DIR
-# ./controlPlots secondJetPt 10 $DIR
-# ./controlPlots secondJetEta 10 $DIR
-# ./controlPlots secondJetPhi 10 $DIR
-# ./controlPlots thirdJetPt 10 $DIR
-# ./controlPlots thirdJetEta 10 $DIR
-# ./controlPlots thirdJetPhi 10 $DIR
-# ./controlPlots fourthJetPt 10 $DIR
-# ./controlPlots fourthJetEta 10 $DIR
-# ./controlPlots fourthJetPhi 10 $DIR
-# ./controlPlots zbosonPt 8 $DIR
-# ./controlPlots ttzMass 8 $DIR
-# ./controlPlots ttbarMass 8 $DIR
-# ./controlPlots topPt 8 $DIR
-# ./controlPlots deltaPhiTtbar 8 $DIR
-# ./controlPlots deltaPhiTopZ 8 $DIR
-# ./controlPlots deltaRapTtbar 8 $DIR
-# ./controlPlots deltaRapTopZ 8 $DIR
-# ./controlPlots lepTopMass 10 $DIR
-# ./controlPlots hadTopMass 10 $DIR
-# ./controlPlots topLeptonPt 8 $DIR
-# ./controlPlots topLeptonsMass 8 $DIR
-# ./controlPlots fourLeptonsMass 8 $DIR
-# ./controlPlots deltaPhiTopLeptons 8 $DIR
-# ./controlPlots deltaPhiTopLeptonZ 8 $DIR
-# ./controlPlots deltaRapTopLeptons 8 $DIR
-# ./controlPlots deltaRapTopLeptonZ 8 $DIR
+./controlPlots control_category3l 4 $DIR
+./controlPlots control_category4l 6 $DIR
+./controlPlots control_nJets 6 $DIR
+./controlPlots control_nBjets 3 $DIR
+./controlPlots control_dilepPt 10 $DIR
+./controlPlots control_dilepEta 12 $DIR
+./controlPlots control_dilepPhi 10 $DIR
+./controlPlots control_dilepMass3l 10 $DIR
+./controlPlots control_dilepMass4l 10 $DIR
+./controlPlots control_missingEt 11 $DIR
+./controlPlots control_missingPhi 10 $DIR
+./controlPlots control_firstLepPt 10 $DIR
+./controlPlots control_firstLepEta 10 $DIR
+./controlPlots control_firstLepPhi 10 $DIR
+./controlPlots control_secondLepPt 10 $DIR
+./controlPlots control_secondLepEta 10 $DIR
+./controlPlots control_secondLepPhi 10 $DIR
+./controlPlots control_thirdLepPt 10 $DIR
+./controlPlots control_thirdLepEta 10 $DIR
+./controlPlots control_thirdLepPhi 10 $DIR
+./controlPlots control_fourthLepPt 10 $DIR
+./controlPlots control_fourthLepEta 10 $DIR
+./controlPlots control_fourthLepPhi 10 $DIR
+./controlPlots control_firstJetPt 10 $DIR
+./controlPlots control_firstJetEta 10 $DIR
+./controlPlots control_firstJetPhi 10 $DIR
+./controlPlots control_secondJetPt 10 $DIR
+./controlPlots control_secondJetEta 10 $DIR
+./controlPlots control_secondJetPhi 10 $DIR
+./controlPlots control_thirdJetPt 10 $DIR
+./controlPlots control_thirdJetEta 10 $DIR
+./controlPlots control_thirdJetPhi 10 $DIR
+./controlPlots control_fourthJetPt 10 $DIR
+./controlPlots control_fourthJetEta 10 $DIR
+./controlPlots control_fourthJetPhi 10 $DIR
+./controlPlots reco3l_lepTopMass 10 $DIR
+./controlPlots reco3l_hadTopMass 10 $DIR
+./controlPlots reco_zbosonPt 8 $DIR
+./controlPlots reco3l_ttzMass 8 $DIR
+./controlPlots reco3l_ttbarMass 8 $DIR
+./controlPlots reco3l_topPt 8 $DIR
+./controlPlots reco3l_deltaPhiTtbar 8 $DIR
+./controlPlots reco3l_deltaPhiTopZ 8 $DIR
+./controlPlots reco3l_deltaRapTtbar 8 $DIR
+./controlPlots reco3l_deltaRapTopZ 8 $DIR
+./controlPlots reco4l_topLeptonPt 8 $DIR
+./controlPlots reco4l_topLeptonsMass 8 $DIR
+./controlPlots reco4l_fourLeptonsMass 8 $DIR
+./controlPlots reco4l_deltaPhiTopLeptons 8 $DIR
+./controlPlots reco4l_deltaPhiTopLeptonZ 8 $DIR
+./controlPlots reco4l_deltaRapTopLeptons 8 $DIR
+./controlPlots reco4l_deltaRapTopLeptonZ 8 $DIR

@@ -24,14 +24,13 @@ HistogramFile::HistogramFile(int nVar, int nSel, int nSys, int nBin) :
     }
 }
 
-void HistogramFile::readDirectory(TDirectory* dir, std::string obsname, std::vector<std::pair<int, int>> selectionMap, double xsec) {
+void HistogramFile::readDirectory(TDirectory* dir, std::vector<std::pair<int, int>> selectionMap, double xsec) {
     TH1* hist = nullptr;
     for(int iVar=0; iVar<nVariants; iVar++) {
         for(auto const& iSel: selectionMap) {
             for(int iSys=0; iSys<nSystematics+2; iSys++) {
                 hist = (TH1*)dir->Get((
-                    obsname
-                    +"_var"+std::to_string(iVar)
+                    "hist_var"+std::to_string(iVar)
                     +"_sel"+std::to_string(iSel.first)
                     +(iSys==0 ? std::string("_stat") : "_sys"+std::to_string(iSys-1))
                 ).c_str());
@@ -52,14 +51,14 @@ void HistogramFile::readDirectory(TDirectory* dir, std::string obsname, std::vec
 void HistogramFile::readFile(std::string filename, std::string obsname, std::vector<std::pair<int, int>> selectionMap, double xsec) {
     std::cout << "Reading " << filename << std::endl;
     TFile* tfile = TFile::Open(filename.c_str());
-    readDirectory((TDirectory*)tfile->Get(obsname.c_str()), obsname, selectionMap, xsec);
+    readDirectory((TDirectory*)tfile->Get(obsname.c_str()), selectionMap, xsec);
     tfile->Close();
 }
 
-HistogramFile::HistogramFile(TDirectory* dir, std::string obsname, int nVar, int nSel, std::vector<std::pair<int, int>> selectionMap, int nSys, int nBin, double xsec) :
+HistogramFile::HistogramFile(TDirectory* dir, int nVar, int nSel, std::vector<std::pair<int, int>> selectionMap, int nSys, int nBin, double xsec) :
     HistogramFile(nVar, nSel, nSys, nBin)
 {
-    readDirectory(dir, obsname, selectionMap, xsec);
+    readDirectory(dir, selectionMap, xsec);
 }
 
 HistogramFile::HistogramFile(std::string filename, std::string obsname, int nVar, int nSel, std::vector<std::pair<int, int>> selectionMap, int nSys, int nBin, double xsec) :

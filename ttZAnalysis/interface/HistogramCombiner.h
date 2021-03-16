@@ -7,8 +7,8 @@
 
 class HistogramCombiner {
 public:
-    HistogramCombiner(int, int, int);
-    virtual ~HistogramCombiner();
+    HistogramCombiner(int nSel, int nGrp, int nBin) : nSelections(nSel), nGroups(nGrp), nBins(nBin) {}
+    virtual ~HistogramCombiner() {}
 
     void SetBins(double*, double*);
     void AddSample(double***, int, int, bool, double=1.0);
@@ -30,7 +30,7 @@ public:
 
     static const int nYears = 3;
     const int nSelections, nGroups, nBins;
-    double* binCenters, * binBoundaries;
+    double* binCenters = nullptr, * binBoundaries = nullptr;
 
 protected:
     typedef std::tuple<double***, int, int, bool, double> Sample;

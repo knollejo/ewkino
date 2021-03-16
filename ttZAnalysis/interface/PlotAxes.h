@@ -10,11 +10,18 @@ const std::string LABEL_ETA = "η";
 const std::string LABEL_PHI = "φ";
 const std::string LABEL_MASS = "mass "+LABEL_GEV;
 
+inline std::string trim_obsname(std::string obs) {
+    const int pos = obs.find_first_of('_');
+    if(pos>0) return obs.substr(pos+1);
+    else return obs;
+}
+
+
 const std::map<std::string, std::string> XAXIS_LABELS({
     {"category3l", "flavor category"},
     {"category4l", "flavor category"},
-    {"nJets", "jet multiplicity"},
-    {"nBjets", "b-jet multiplicity"},
+    {"Jets", "jet multiplicity"},
+    {"Bjets", "b-jet multiplicity"},
     {"dilepPt", "dilepton "+LABEL_PT},
     {"dilepEta", "dilepton "+LABEL_ETA},
     {"dilepPhi", "dilepton "+LABEL_PHI},
@@ -46,6 +53,8 @@ const std::map<std::string, std::string> XAXIS_LABELS({
     {"fourthJetPt", "4th jet "+LABEL_PT},
     {"fourthJetEta", "4th jet "+LABEL_ETA},
     {"fourthJetPhi", "4th jet"+LABEL_PHI},
+    {"lepTopMass", "m(leptonic t) "+LABEL_GEV},
+    {"hadTopMass", "m(hadronic t) "+LABEL_GEV},
     {"zbosonPt", "p_{T}(Z) "+LABEL_GEV},
     {"ttzMass", "m(ttZ) "+LABEL_GEV},
     {"ttbarMass", "m(tt) "+LABEL_GEV},
@@ -54,8 +63,6 @@ const std::map<std::string, std::string> XAXIS_LABELS({
     {"deltaPhiTopZ", "|Δφ(t,Z)|"},
     {"deltaRapTtbar", "|Δy(t,t)|"},
     {"deltaRapTopZ", "|Δy(t,Z)|"},
-    {"lepTopMass", "m(leptonic t) "+LABEL_GEV},
-    {"hadTopMass", "m(hadronic t) "+LABEL_GEV},
     {"topLeptonPt", "p_{T}(ℓ_{t}) "+LABEL_GEV},
     {"topLeptonsMass", "m(ℓ_{t}ℓ_{t}) "+LABEL_GEV},
     {"fourLeptonsMass", "m(4ℓ) "+LABEL_GEV},
@@ -64,9 +71,11 @@ const std::map<std::string, std::string> XAXIS_LABELS({
     {"deltaRapTopLeptons", "|Δy(ℓ_{t},ℓ_{t})|"},
     {"deltaRapTopLeptonZ", "|Δy(ℓ_{t},Z)|"},
 });
-std::string get_xaxis_label(std::string obs) {
-    auto found = XAXIS_LABELS.find(obs);
-    return (found==XAXIS_LABELS.end()) ? obs : found->second;
+inline std::string get_xaxis_label(std::string obs) {
+    const std::string obstrimmed = trim_obsname(obs);
+    auto found = XAXIS_LABELS.find(obstrimmed);
+    if(found!=XAXIS_LABELS.end()) return found->second;
+    else return obstrimmed;
 }
 
 const std::string XAXIS_ADD_FIRST_PHI = "set xtics 0.5*pi;\\\n";
@@ -100,8 +109,8 @@ const std::map<std::string, std::string> XAXIS_ADD_FIRST({
     {"deltaPhiTopLeptons", "set xtics 0.25*pi;\\\n"},
     {"deltaPhiTopLeptonZ", "set xtics 0.25*pi;\\\n"},
 });
-std::string get_xaxis_add_first(std::string obs) {
-    auto found = XAXIS_ADD_FIRST.find(obs);
+inline std::string get_xaxis_add_first(std::string obs) {
+    auto found = XAXIS_ADD_FIRST.find(trim_obsname(obs));
     return (found==XAXIS_ADD_FIRST.end()) ? "" : found->second;
 }
 
@@ -151,8 +160,8 @@ const std::map<std::string, std::string> XAXIS_ADD_SECOND({
     {"deltaPhiTopLeptons", "set xtics add ('π/4' 0.25*pi, 'π/2' 0.5*pi, '3π/4' 0.75*pi, 'π' pi);\\\n"},
     {"deltaPhiTopLeptonZ", "set xtics add ('π/4' 0.25*pi, 'π/2' 0.5*pi, '3π/4' 0.75*pi, 'π' pi);\\\n"},
 });
-std::string get_xaxis_add_second(std::string obs) {
-    auto found = XAXIS_ADD_SECOND.find(obs);
+inline std::string get_xaxis_add_second(std::string obs) {
+    auto found = XAXIS_ADD_SECOND.find(trim_obsname(obs));
     return (found==XAXIS_ADD_SECOND.end()) ? "" : found->second;
 }
 

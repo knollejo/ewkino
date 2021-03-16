@@ -15,7 +15,7 @@ const int nYears = 3;
 const int nSamples = 7;
 const int nVarData = 2;
 const int nVarBkgr = 3;
-const int nVarSgnl = 18;
+const int nVarSgnl = 21;
 const int nSelections = 3;
 const std::vector<std::pair<int, int>> selectionMap({
     std::make_pair(0, 0), // 4l -> 4l
@@ -31,18 +31,19 @@ const int nSysSgnl = 126;
 
 const int i_data = 0;
 const int i_ttZ3l = 1;
-const int i_ttZ4l = 2;
-const int i_ttZ2l = 3;
-const int i_ttZtaus = 4;
-const int i_ttZoffshell = 5;
-const int i_ttZneutrinos = 6;
-const int i_tZq = 6;
-const int i_tWZ = 6;
-const int i_ttX = 6;
-const int i_VV = 6;
+const int i_ttZ4l = 1;
+const int i_ttZ2l = 1;
+const int i_ttZ_Ztau = 1;
+const int i_ttZ_toptau = 1;
+const int i_ttZoffshell = 4;
+const int i_ttZneutrinos = 4;
+const int i_tZq = 2;
+const int i_tWZ = 3;
+const int i_ttX = 4;
+const int i_VV = 5;
 const int i_nonprompt = 6;
 
-const std::string path = "output/210308_142313/";
+const std::string path = "output/210315_095935/";
 
 void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
 
@@ -56,7 +57,7 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     HISTOGRAM_FILE(data_2016, "data_2016.root", nVarData, nSysData, 1.0);
     HISTOGRAM_FILE(data_2017, "data_2017.root", nVarData, nSysData, 1.0);
     HISTOGRAM_FILE(data_2018, "data_2018.root", nVarData, nSysData, 1.0);
-    plot.SetBins(data_2016.binCenters, data_2017.binBoundaries);
+    plot.SetBins(data_2016.binCenters, data_2016.binBoundaries);
     plot.AddSample(data_2016.values[0], 0, i_data, true);
     plot.AddSample(data_2017.values[0], 1, i_data, true);
     plot.AddSample(data_2018.values[0], 2, i_data, true);
@@ -79,6 +80,7 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     ADD_HISTOGRAM_FILE(ttZ_2018, "ttZ3_2018.root", xsec_ttZ*0.2);
     ADD_HISTOGRAM_FILE(ttZ_2018, "ttZ4_2018.root", xsec_ttZ*0.2);
     ADD_HISTOGRAM_FILE(ttZ_2018, "ttZ5_2018.root", xsec_ttZ*0.2);
+    plot.SetBins(ttZ_2016.binCenters, ttZ_2016.binBoundaries);
     plot.AddSample(ttZ_2016.values[0], 0, i_ttZ4l, false);
     plot.AddSample(ttZ_2017.values[0], 1, i_ttZ4l, false);
     plot.AddSample(ttZ_2018.values[0], 2, i_ttZ4l, false);
@@ -88,16 +90,24 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
     plot.AddSample(ttZ_2016.values[6], 0, i_ttZ2l, false);
     plot.AddSample(ttZ_2017.values[6], 1, i_ttZ2l, false);
     plot.AddSample(ttZ_2018.values[6], 2, i_ttZ2l, false);
-    plot.AddSample(ttZ_2016.values[9], 0, i_ttZtaus, false);
-    plot.AddSample(ttZ_2017.values[9], 1, i_ttZtaus, false);
-    plot.AddSample(ttZ_2018.values[9], 2, i_ttZtaus, false);
-    plot.AddSample(ttZ_2016.values[12], 0, i_ttZoffshell, false);
-    plot.AddSample(ttZ_2017.values[12], 1, i_ttZoffshell, false);
-    plot.AddSample(ttZ_2018.values[12], 2, i_ttZoffshell, false);
-    plot.AddSample(ttZ_2016.values[15], 0, i_ttZneutrinos, false);
-    plot.AddSample(ttZ_2017.values[15], 1, i_ttZneutrinos, false);
-    plot.AddSample(ttZ_2018.values[15], 2, i_ttZneutrinos, false);
-    for(int iCat=0; iCat<6; iCat++) {
+    plot.AddSample(ttZ_2016.values[9], 0, i_ttZ_Ztau, false);
+    plot.AddSample(ttZ_2017.values[9], 1, i_ttZ_Ztau, false);
+    plot.AddSample(ttZ_2018.values[9], 2, i_ttZ_Ztau, false);
+    plot.AddSample(ttZ_2016.values[12], 0, i_ttZ_toptau, false);
+    plot.AddSample(ttZ_2017.values[12], 1, i_ttZ_toptau, false);
+    plot.AddSample(ttZ_2018.values[12], 2, i_ttZ_toptau, false);
+    plot.AddSample(ttZ_2016.values[15], 0, i_ttZoffshell, false);
+    plot.AddSample(ttZ_2017.values[15], 1, i_ttZoffshell, false);
+    plot.AddSample(ttZ_2018.values[15], 2, i_ttZoffshell, false);
+    plot.AddSample(ttZ_2016.values[18], 0, i_ttZneutrinos, false);
+    plot.AddSample(ttZ_2017.values[18], 1, i_ttZneutrinos, false);
+    plot.AddSample(ttZ_2018.values[18], 2, i_ttZneutrinos, false);
+    for(int iCat=0; iCat<7; iCat++) {
+        plot.AddSample(ttZ_2016.values[iCat*3], 0, i_data, true);
+        plot.AddSample(ttZ_2017.values[iCat*3], 1, i_data, true);
+        plot.AddSample(ttZ_2018.values[iCat*3], 2, i_data, true);
+    }
+    for(int iCat=0; iCat<7; iCat++) {
         plot.AddSample(ttZ_2016.values[iCat*3+2], 0, i_nonprompt, false, -1.0);
         plot.AddSample(ttZ_2017.values[iCat*3+2], 1, i_nonprompt, false, -1.0);
         plot.AddSample(ttZ_2018.values[iCat*3+2], 2, i_nonprompt, false, -1.0);
@@ -489,7 +499,6 @@ void makeControlPlots(std::string obsname, int nBins, std::string outputdir) {
             out.close();
         }
     }
-
 }
 
 int main(int argc, char* argv[]){

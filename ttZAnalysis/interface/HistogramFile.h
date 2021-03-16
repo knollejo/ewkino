@@ -3,7 +3,7 @@
 
 #include <string>
 #include <utility>
-#include <utility>
+#include <vector>
 
 #include <TDirectory.h>
 
@@ -12,9 +12,9 @@ protected:
     HistogramFile(int, int, int, int);
 
 public:
-    void readDirectory(TDirectory*, std::string, std::vector<std::pair<int, int>>, double);
+    void readDirectory(TDirectory*, std::vector<std::pair<int, int>>, double);
     void readFile(std::string, std::string, std::vector<std::pair<int, int>>, double);
-    HistogramFile(TDirectory*, std::string, int, int, std::vector<std::pair<int, int>>, int, int, double);
+    HistogramFile(TDirectory*, int, int, std::vector<std::pair<int, int>>, int, int, double);
     HistogramFile(std::string, std::string, int, int, std::vector<std::pair<int, int>>, int, int, double);
     ~HistogramFile();
 
